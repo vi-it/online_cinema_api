@@ -1,3 +1,4 @@
+EXTRACT_QUERY = """
 SELECT
    fw.id,
    fw.title,
@@ -27,3 +28,4 @@ g.modified > %s OR
 p.modified > %s
 GROUP BY fw.id
 ORDER BY fw.modified;
+"""

@@ -4,6 +4,8 @@ from contextlib import closing, contextmanager
 
 import psycopg2
 
+from utils import JsonFileStorage, State
+from extract_query import EXTRACT_QUERY
 
 class PostgresExtractor:
     """
