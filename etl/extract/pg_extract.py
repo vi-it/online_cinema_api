@@ -5,7 +5,7 @@ from contextlib import closing, contextmanager
 import psycopg2
 
 from utils import JsonFileStorage, State
-from extract_query import EXTRACT_QUERY
+from .extract_query import EXTRACT_QUERY
 
 class PostgresExtractor:
     """
@@ -22,7 +22,7 @@ class PostgresExtractor:
                 'password': os.environ.get('DB_PASSWORD'), 'host': os.environ.get('DB_HOST'),
                 'port': os.environ.get('DB_PORT'), 'options': '-c search_path=content'}
         try:
-            cursor = psycopg2.connect(**auth, cursor_factory=DictCursor)
+            cursor = psycopg2.connect(**auth, cursor_factory=psycopg2.extras.DictCursor)
             return cursor
         except psycopg2.OperationalError:
             logging.exception("Database transfer failed. Could not connect to the database server!")
@@ -32,13 +32,10 @@ class PostgresExtractor:
     def extract(self):
 
         with closing(self._connect()) as pg_cursor:
-            with open('extract_query') as query_file:
-                query = query_file.read()
+            pg_cursor.execute(EXTRACT_QUERY, (self.modified, self.modified, self.modified))
 
-        pg_cursor.execute(query, (self.modified, self.modified, self.modified))
-
-        while data := pg_cursor.fetchmany(self.chunk):
-            self.state.save_key('pg_state', data)
-            logging.info("Extracted film data from PostgreSQL")
-            yield data
-            self.sate.save_key('pg_state', None)
+            while data := pg_cursor.fetchmany(self.chunk):
+                self.state.save_key('pg_state', data)
+                logging.info("Extracted film data from PostgreSQL")
+                yield data
+                self.sate.save_key('pg_state', None)

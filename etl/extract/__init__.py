@@ -2,4 +2,4 @@ _all__ = [
     'PostgresExtractor'
 ]
 
-from pg_extract import PostgresExtractor
+from .pg_extract import PostgresExtractor
