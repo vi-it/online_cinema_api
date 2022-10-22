@@ -12,10 +12,10 @@ class PostgresExtractor:
     A class for extracting data from a PostgreSQL database.
     """
 
-    def __init__(self, chunk: int):
+    def __init__(self, chunk: int = 100):
         self.chunk = chunk
-        self.modified = ...
-        self.state = ...
+        self.state = State(JsonFileStorage('state.json'))
+        self.modified = self.state.get_state('pg_state')
 
     def _connect(self):
         auth = {'dbname': os.environ.get('DB_NAME'), 'user': os.environ.get('DB_USER'),
