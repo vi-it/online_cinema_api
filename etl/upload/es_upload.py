@@ -1,10 +1,10 @@
 import logging
-import os
 import typing
 
 import elasticsearch
 import elasticsearch.helpers
 
+import settings
 from backoff import backoff
 from transform import Filmwork
 
@@ -12,10 +12,10 @@ class ElasticsearchLoader:
     """Load the movies data to the Elasticsearch index"""
 
     def __init__(self) -> None:
-        self._es_host = os.environ.get('ES_HOST')
-        self._es_port = os.environ.get('ES_PORT')
+        self._auth = settings.EST().dict()
         self.es = elasticsearch.Elasticsearch(
-            f"http://{self._es_host}:{self._es_port}", verify_certs=False
+            f"http://{self._auth['es_host']}:{self._auth['es_port']}",
+            verify_certs=False
         )
 
     @backoff(exceptions=(elasticsearch.exceptions.ConnectionError))

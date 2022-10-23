@@ -32,3 +32,11 @@ class PGSettings(BaseSettings):
         env_file_encoding = 'utf-8'
 
 
+class EST(BaseSettings):
+    """Elasticsearc settings."""
+    es_host: str
+    es_port: str
+
+    class Config:
+        env_file = '.env'
+        env_file_encoding = 'utf-8'
