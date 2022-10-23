@@ -14,7 +14,6 @@ class Filmwork(BaseModel):
     title: str
     description: typing.Optional[str]
     imdb_rating: typing.Optional[float]
-    type: str
     director: typing.Optional[list[str]]
     actors_names: typing.Optional[list[str]]
     writers_names: typing.Optional[list[str]]

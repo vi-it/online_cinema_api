@@ -14,8 +14,7 @@ class PostgresExtractor:
     A class for extracting data from a PostgreSQL database.
     """
 
-    def __init__(self, chunk: int = 100):
-        self.chunk = chunk
+    def __init__(self):
         self.state = State(JsonFileStorage('state.json'))
 
     def _modified(self):
@@ -36,7 +35,7 @@ class PostgresExtractor:
         except Exception as error:
             logging.exception(f"Database transfer failed. The following exception came up: {error}")
 
-    def extract(self):
+    def extract(self, chunk: int = 100):
         pg_state = self.state.get_state('pg_state')
 
         if pg_state is not None:
@@ -45,7 +44,7 @@ class PostgresExtractor:
         with closing(self._connect()) as pg_cursor:
             pg_cursor.execute(EXTRACT_QUERY, (self._modified(),)*3)
 
-            while data := pg_cursor.fetchmany(self.chunk):
+            while data := pg_cursor.fetchmany(chunk):
                 self.state.set_state('pg_state', data)
                 self.state.set_state('pg_modified', self._modified)
                 logging.info("Extracted film data from PostgreSQL")
