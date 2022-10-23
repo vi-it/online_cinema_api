@@ -21,9 +21,10 @@ class ElasticsearchLoader:
     @backoff(exceptions=(elasticsearch.exceptions.ConnectionError))
     def upload_data(self, data: typing.List[Filmwork]) -> None:
         """Upload the data to the index 'moves'."""
-        self.es.check_index()
+        idx = 'movies'
+        self.check_index(idx)
 
-        query = [{'_index': 'movies', '_id': data.id, '_source': dict(data)}]
+        query = [{'_index': idx, '_id': data.id, '_source': dict(data)}]
         rows_count, errors = elasticsearch.helpers.bulk(self.es, query)
 
         if errors:
@@ -34,8 +35,7 @@ class ElasticsearchLoader:
 
     @backoff(exceptions=(elasticsearch.exceptions.ConnectionError))
     def check_index(self, idx_name: str):
-        if not self.exists(index=idx_name):
-            self.es.indices.create(index=idx_name,
-                                   body=es_schema.EST_REQUEST,
-                                   ignore=400)
+        self.es.indices.create(index=idx_name,
+                               body=es_schema.EST_REQUEST,
+                               ignore=400)
 
