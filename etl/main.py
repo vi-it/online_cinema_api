@@ -24,6 +24,7 @@ class PostgresToElastic:
                 fw = transform.Transform(row)
                 film = fw.to_filmwork()
 
+                print(film)
                 es_loader = upload.ElasticsearchLoader()
                 es_loader.upload_data(film)
 

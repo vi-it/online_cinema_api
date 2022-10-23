@@ -22,6 +22,13 @@ class PGSettings(BaseSettings):
     user: str
     options: str = '-c search_path=content'
 
+    def dict(self):
+        res = super().dict()
+        res['user'] = os.environ.get('DB_USER')
+        return res
+
     class Config:
         env_file = '.env'
         env_file_encoding = 'utf-8'
+
+
