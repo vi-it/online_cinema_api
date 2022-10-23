@@ -1,7 +1,7 @@
 """
 Elasticsearch Request to create a new index 'movies'.
 """
-EST_REQUEST = {
+EST_REQUEST = """{
   "settings": {
     "refresh_interval": "1s",
     "analysis": {
@@ -107,4 +107,4 @@ EST_REQUEST = {
       }
     }
   }
-}'
+}"""
