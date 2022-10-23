@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 
-from transform import Filmwork, Person
+import transform
+
 
 load_dotenv()
 
@@ -11,7 +12,9 @@ def main():
 
     for data in extractor.extract():
         for row in data:
-            print(row)
+            data = transform.Transform(row)
+            film = data.to_filmwork()
+            print(dict(film))
 
 if __name__ == '__main__':
     main()
