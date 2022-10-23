@@ -14,12 +14,15 @@ class Transform:
         people = parse_obj_as(typing.List[Person], self.item[0]['people'])
         film = parse_obj_as(typing.List[Filmwork], self.item)[0]
 
-        film.actors = [p for p in people if p.role == 'actor']
-        film.writers = [p for p in people if p.role == 'writer']
+        actors_ = [p for p in people if p.role == 'actor']
+        writers_ = [p for p in people if p.role == 'writer']
+
+        film.actors = [{'id': p.id, 'name': p.name} for p in actors_]
+        film.writers = [{'id': p.id, 'name': p.name} for p in writers_]
 
         film.director = ', '.join(sorted(p.name for p in people if p.role == 'director'))
-        film.actors_names = ', '.join(sorted(p.name for p in film.actors))
-        film.writers_names = ', '.join(sorted(p.name for p in film.writers))
+        film.actors_names = ', '.join(sorted(p.name for p in actors_))
+        film.writers_names = ', '.join(sorted(p.name for p in writers_))
 
         return film
 

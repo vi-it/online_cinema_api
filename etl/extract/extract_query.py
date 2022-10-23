@@ -5,8 +5,6 @@ SELECT jsonb_build_object(
    'description',fw.description,
    'imdb_rating',fw.rating,
    'type',fw.type,
-   'created',fw.created,
-   'modified',fw.modified,
    'people', COALESCE (
        json_agg(
            DISTINCT jsonb_build_object(

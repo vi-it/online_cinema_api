@@ -46,7 +46,8 @@ class PostgresExtractor:
 
             while data := pg_cursor.fetchmany(chunk):
                 self.state.set_state('pg_state', data)
-                self.state.set_state('pg_modified', self._modified)
+                if self._modified().startswith('<bound method'):
+                    self.state.set_state('pg_modified', self._modified)
                 logging.info("Extracted film data from PostgreSQL")
 
                 yield data
