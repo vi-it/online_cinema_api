@@ -1,3 +1,10 @@
+"""
+A PostgreSQL query for getting information about movies for loading
+into the Elasticsearch index 'movies'.
+
+The query retrieves only the information that has been modified AFTER
+the previous loading to Elasticsearch.
+"""
 EXTRACT_QUERY = """
 SELECT jsonb_build_object(
    'id', fw.id,

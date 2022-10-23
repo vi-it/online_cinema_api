@@ -9,8 +9,14 @@ load_dotenv()
 
 
 class PostgresToElastic:
+    """
+    Handle extracting data from PostgreSQL, transforming it into
+    Pydantic models, serializing and loading to the 'movies' index
+    to Elasticsearch.
+    """
 
-    def process_data(self):
+    def process_data(self) -> None:
+        """Run the process."""
         extractor = PostgresExtractor()
 
         for raw_data in extractor.extract():
@@ -23,8 +29,9 @@ class PostgresToElastic:
 
 
 def main():
-   pg_to_es = PostgresToElastic()
-   pg_to_es.process_data()
+    """Main utility function for starting the data transfer."""
+    pg_to_es = PostgresToElastic()
+    pg_to_es.process_data()
 
 
 if __name__ == '__main__':
