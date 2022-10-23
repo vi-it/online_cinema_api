@@ -3,7 +3,7 @@ SELECT jsonb_build_object(
    'id', fw.id,
    'title',fw.title,
    'description',fw.description,
-   'rating',fw.rating,
+   'imdb_rating',fw.rating,
    'type',fw.type,
    'created',fw.created,
    'modified',fw.modified,
@@ -17,7 +17,7 @@ SELECT jsonb_build_object(
        ) FILTER (WHERE p.id is not null),
        '[]'
    ),
-   'genres', array_agg(DISTINCT g.name))
+   'genre', array_agg(DISTINCT g.name))
 FROM content.film_work fw
 LEFT JOIN content.person_film_work pfw ON pfw.film_work_id = fw.id
 LEFT JOIN content.person p ON p.id = pfw.person_id

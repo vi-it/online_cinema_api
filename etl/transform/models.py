@@ -1,3 +1,5 @@
+import typing
+
 from pydantic import BaseModel
 
 
@@ -8,12 +10,13 @@ class Person(BaseModel):
 
 class Filmwork(BaseModel):
     id: str
-    imdb_rating: float
-    genre: list[str]
     title: str
-    description: str | None
-    director: list[str]
-    actors_names: list[str]
-    writers_names: list[str]
-    actors: list[Person]
-    writers: list[Person]
+    description: typing.Optional[str]
+    imdb_rating: typing.Optional[float]
+    type: str
+    director: typing.Optional[list[str]]
+    actors_names: typing.Optional[list[str]]
+    writers_names: typing.Optional[list[str]]
+    actors: typing.Optional[list[Person]]
+    writers: typing.Optional[list[Person]]
+    genre: typing.Optional[list[str]]
