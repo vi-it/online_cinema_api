@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 
+from transform import Filmwork, Person
 
 load_dotenv()
 
@@ -9,7 +10,8 @@ def main():
     extractor = PostgresExtractor()
 
     for data in extractor.extract():
-        print(data)
+        for row in data:
+            print(row)
 
 if __name__ == '__main__':
     main()
