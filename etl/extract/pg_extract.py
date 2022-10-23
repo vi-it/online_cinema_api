@@ -20,8 +20,10 @@ class PostgresExtractor:
 
     def _modified(self):
         modified = self.state.get_state('pg_modified')
-        if not modified:
+        if modified is None:
             modified = datetime.datetime.min.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            modified = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         return modified
 
     @backoff(exceptions=(psycopg2.OperationalError,))
@@ -44,11 +46,9 @@ class PostgresExtractor:
 
             while data := pg_cursor.fetchmany(chunk):
                 self.state.set_state('pg_state', data)
-                if self._modified().startswith('<bound method'):
-                    self.state.set_state('pg_modified', self._modified)
+                self.state.set_state('pg_modified', self._modified())
                 logging.info("Extracted film data from PostgreSQL")
 
                 yield data
 
                 self.state.set_state('pg_state', None)
-                self.state.set_state('pg_modified', None)
