@@ -41,7 +41,7 @@ class PostgresExtractor:
         return connection.cursor()
 
     @backoff(exceptions=[AttributeError])
-    def extract(self, chunk: int = 100) -> typing.Optional[list]:
+    def extract(self, chunk: int = 100) -> list | None:
         """
         Extract and yield database data by piece. If the processing had been
         interrupted before, yield the previously loaded data. Update the

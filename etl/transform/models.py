@@ -22,12 +22,12 @@ class Filmwork(BaseModel):
     """
     id: str
     title: str
-    description: typing.Optional[str]
-    imdb_rating: typing.Optional[float]
-    director: typing.Optional[list[str]]
-    actors_names: typing.Optional[list[str]]
-    writers_names: typing.Optional[list[str]]
-    actors: typing.Optional[list[Person]]
-    writers: typing.Optional[list[Person]]
-    genre: typing.Optional[list[str]]
+    description: str | None
+    imdb_rating: float | None
+    director: list[str] | None
+    actors_names: list[str] | None
+    writers_names: list[str] | None
+    actors: list[Person] | None
+    writers: list[Person] | None
+    genre: list[str] | None
 
