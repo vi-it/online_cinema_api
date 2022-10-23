@@ -1,13 +1,13 @@
 EXTRACT_QUERY = """
-SELECT
-   fw.id,
-   fw.title,
-   fw.description,
-   fw.rating,
-   fw.type,
-   fw.created,
-   fw.modified,
-   COALESCE (
+SELECT jsonb_build_object(
+   'id', fw.id,
+   'title',fw.title,
+   'description',fw.description,
+   'rating',fw.rating,
+   'type',fw.type,
+   'created',fw.created,
+   'modified',fw.modified,
+   'people', COALESCE (
        json_agg(
            DISTINCT jsonb_build_object(
                'person_role', pfw.role,
@@ -16,8 +16,8 @@ SELECT
            )
        ) FILTER (WHERE p.id is not null),
        '[]'
-   ) as persons,
-   array_agg(DISTINCT g.name) as genres
+   ),
+   'genres', array_agg(DISTINCT g.name))
 FROM content.film_work fw
 LEFT JOIN content.person_film_work pfw ON pfw.film_work_id = fw.id
 LEFT JOIN content.person p ON p.id = pfw.person_id
