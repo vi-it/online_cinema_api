@@ -7,6 +7,7 @@ from contextlib import closing
 import psycopg2
 from psycopg2.extras import DictCursor
 
+import settings
 from .extract_query import EXTRACT_QUERY
 from backoff import backoff
 from utils import JsonFileStorage, State
@@ -35,12 +36,7 @@ class PostgresExtractor:
     @backoff(exceptions=(psycopg2.OperationalError,))
     def _connect(self) -> psycopg2.extras.DictCursor:
         """Establish the database connection to PostgreSQL."""
-        auth = {'dbname': os.environ.get('DB_NAME'),
-                'user': os.environ.get('DB_USER'),
-                'password': os.environ.get('DB_PASSWORD'),
-                'host': os.environ.get('DB_HOST'),
-                'port': os.environ.get('DB_PORT'),
-                'options': '-c search_path=content'}
+        auth = settings.PGSettings().dict()
         connection = psycopg2.connect(**auth, cursor_factory=DictCursor)
         return connection.cursor()
 
