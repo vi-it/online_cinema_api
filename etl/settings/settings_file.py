@@ -1,19 +1,16 @@
-from pydantic import (
-    BaseModel,
-    BaseSettings,
-    PyObject,
-    RedisDsn,
-    PostgresDsn,
-    AmqpDsn,
-    Field,
-)
+"""
+The module contains Pydantic models for environment variables
+"""
 import pydantic
 
 import os
 from dotenv import load_dotenv
+
+
 load_dotenv()
 
-class PGSettings(BaseSettings):
+
+class PGSettings(pydantic.BaseSettings):
     """PostgreSQL settings."""
     host: str
     dbname: str
@@ -32,7 +29,7 @@ class PGSettings(BaseSettings):
         env_file_encoding = 'utf-8'
 
 
-class EST(BaseSettings):
+class EST(pydantic.BaseSettings):
     """Elasticsearc settings."""
     es_host: str
     es_port: str

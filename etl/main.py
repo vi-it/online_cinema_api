@@ -1,11 +1,9 @@
-from dotenv import load_dotenv
-
+"""
+Main script for running the program.
+"""
 import transform
 import upload
 from extract import PostgresExtractor
-
-
-load_dotenv()
 
 
 class PostgresToElastic:
