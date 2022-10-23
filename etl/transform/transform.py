@@ -20,9 +20,9 @@ class Transform:
         film.actors = [{'id': p.id, 'name': p.name} for p in actors_]
         film.writers = [{'id': p.id, 'name': p.name} for p in writers_]
 
-        film.director = ', '.join(sorted(p.name for p in people if p.role == 'director'))
-        film.actors_names = ', '.join(sorted(p.name for p in actors_))
-        film.writers_names = ', '.join(sorted(p.name for p in writers_))
+        film.director = sorted(p.name for p in people if p.role == 'director')
+        film.actors_names = sorted(p.name for p in actors_)
+        film.writers_names = sorted(p.name for p in writers_)
 
         return film
 
