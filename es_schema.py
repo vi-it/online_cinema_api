@@ -1,5 +1,7 @@
-curl -XPUT http://127.0.0.1:9200/movies -H 'Content-Type: application/json' -d'
-{
+"""
+Elasticsearch Request to create a new index 'movies'.
+"""
+EST_REQUEST = {
   "settings": {
     "refresh_interval": "1s",
     "analysis": {
@@ -56,7 +58,7 @@ curl -XPUT http://127.0.0.1:9200/movies -H 'Content-Type: application/json' -d'
         "type": "text",
         "analyzer": "ru_en",
         "fields": {
-          "raw": { 
+          "raw": {
             "type":  "keyword"
           }
         }

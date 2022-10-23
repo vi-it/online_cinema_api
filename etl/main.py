@@ -1,6 +1,10 @@
 """
 Main script for running the program.
 """
+import logging
+
+import elasticsearch
+
 import transform
 import upload
 from extract import PostgresExtractor
@@ -22,7 +26,8 @@ class PostgresToElastic:
                 fw = transform.Transform(row)
                 film = fw.to_filmwork()
 
-                print(film)
+                logging.info(film)
+
                 es_loader = upload.ElasticsearchLoader()
                 es_loader.upload_data(film)
 

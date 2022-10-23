@@ -14,4 +14,7 @@ RUN  pip install --upgrade pip \
 
 COPY . .
 
-#ENTRYPOINT ["python", "main.py"]
+# prevent the container from exiting:
+CMD ["tail", "-F", "anything"]
+# run the script:
+CMD ["python", "main.py"]
