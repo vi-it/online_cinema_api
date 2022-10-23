@@ -1,4 +1,5 @@
-_all__ = [
+__all__ = [
+    'EXTRACT_QUERY',
     'PostgresExtractor'
 ]
 
