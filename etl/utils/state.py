@@ -21,13 +21,15 @@ class JsonFileStorage(BaseStorage):
 
     def save_state(self, state: dict) -> None:
         with open(self.file_path, 'w', encoding='utf-8') as json_file:
-            json.dump(state, json_file)
+            json.dump(state, json_file, indent=4, sort_keys=True, default=str)
 
     def retrieve_state(self) -> dict:
         try:
             with open(self.file_path, 'r', encoding='utf-8') as json_file:
                 state = json.load(json_file)
         except FileNotFoundError:
+            state = {}
+        except json.decoder.JSONDecodeError:
             state = {}
         return state
 
