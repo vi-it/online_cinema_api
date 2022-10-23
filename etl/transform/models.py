@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class Person(BaseModel):
     id: str
     name: str
+    role: str
 
 
 class Filmwork(BaseModel):
@@ -20,3 +21,5 @@ class Filmwork(BaseModel):
     actors: typing.Optional[list[Person]]
     writers: typing.Optional[list[Person]]
     genre: typing.Optional[list[str]]
+
+

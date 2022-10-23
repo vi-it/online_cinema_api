@@ -10,9 +10,9 @@ SELECT jsonb_build_object(
    'people', COALESCE (
        json_agg(
            DISTINCT jsonb_build_object(
-               'person_role', pfw.role,
-               'person_id', p.id,
-               'person_name', p.full_name
+               'role', pfw.role,
+               'id', p.id,
+               'name', p.full_name
            )
        ) FILTER (WHERE p.id is not null),
        '[]'
