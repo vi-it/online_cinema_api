@@ -27,11 +27,11 @@ class PostgresToElastic:
                 es_loader.upload_data(film)
 
 
-def main():
+def main_func():
     """Main utility function for starting the data transfer."""
     pg_to_es = PostgresToElastic()
     pg_to_es.process_data()
 
 
 if __name__ == '__main__':
-    main()
+    main_func()
