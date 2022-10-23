@@ -22,4 +22,3 @@ class Filmwork(BaseModel):
     writers: typing.Optional[list[Person]]
     genre: typing.Optional[list[str]]
 
-
