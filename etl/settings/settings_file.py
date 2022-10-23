@@ -12,28 +12,19 @@ load_dotenv()
 
 class PGSettings(pydantic.BaseSettings):
     """PostgreSQL settings."""
-    host: str
-    dbname: str
-    password: str
-    port: str
-    user: str
+    host: str = os.environ.get('host')
+    dbname: str = os.environ.get('movies_database')
+    password: str = os.environ.get('password')
+    port: str = os.environ.get('port')
+    user: str = 'app'
     options: str = '-c search_path=content'
 
-    def dict(self):
-        res = super().dict()
-        res['user'] = os.environ.get('DB_USER')
-        return res
 
-    class Config:
-        env_file = '.env'
-        env_file_encoding = 'utf-8'
-
-
-class EST(pydantic.BaseSettings):
+class ESTSettings(pydantic.BaseSettings):
     """Elasticsearc settings."""
-    es_host: str
-    es_port: str
+    es_host: str = os.environ.get('ES_HOST')
+    es_port: str = os.environ.get('ES_PORT')
 
-    class Config:
-        env_file = '.env'
-        env_file_encoding = 'utf-8'
+
+PG = PGSettings().dict()
+EST = ESTSettings().dict()

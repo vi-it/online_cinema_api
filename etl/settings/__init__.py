@@ -1,7 +1,7 @@
 __all__ = [
     'EST',
-    'PGSettings'
+    'PG'
 ]
 
 from .settings_file import EST
-from .settings_file import PGSettings
+from .settings_file import PG

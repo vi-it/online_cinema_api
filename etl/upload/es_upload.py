@@ -12,9 +12,8 @@ class ElasticsearchLoader:
     """Load the movies data to the Elasticsearch index"""
 
     def __init__(self) -> None:
-        self._auth = settings.EST().dict()
         self.es = elasticsearch.Elasticsearch(
-            f"http://{self._auth['es_host']}:{self._auth['es_port']}",
+            f"http://{settings.EST['es_host']}:{settings.EST['es_port']}",
             verify_certs=False
         )
 

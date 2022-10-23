@@ -1,7 +1,5 @@
 import datetime
 import logging
-import os
-import typing
 from contextlib import closing
 
 import psycopg2
@@ -36,8 +34,7 @@ class PostgresExtractor:
     @backoff(exceptions=(psycopg2.OperationalError,))
     def _connect(self) -> psycopg2.extras.DictCursor:
         """Establish the database connection to PostgreSQL."""
-        auth = settings.PGSettings().dict()
-        connection = psycopg2.connect(**auth, cursor_factory=DictCursor)
+        connection = psycopg2.connect(**settings.PG, cursor_factory=DictCursor)
         return connection.cursor()
 
     @backoff(exceptions=[AttributeError])
