@@ -4,8 +4,8 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
-from core import config
-from core.logger import LOGGING
+from src.core import config
+from src.core.logger import LOGGING
 
 app = FastAPI(
     title=config.PROJECT_NAME,
