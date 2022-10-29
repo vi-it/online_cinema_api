@@ -1,15 +1,15 @@
 import logging
 
 import aioredis
-import uvicorn as uvicorn
+import uvicorn
 from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
+from src.api.v1 import films
 from src.core import config
 from src.core.logger import LOGGING
-from src.db import elastic
-from src.db import redis
+from src.db import elastic, redis
 
 app = FastAPI(
     title=config.PROJECT_NAME,
@@ -38,9 +38,13 @@ async def startup() -> None:
 @app.on_event('shutdown')
 async def shutdown():
     """ Отключаемся от баз при выключении сервера."""
-    await redis.redis.close()
+    redis.redis.close()
+    await redis.redis.wait_closed()
     await elastic.es.close()
 
+# Подключаем роутер к серверу, указав префикс /v1/films
+# Теги указываем для удобства навигации по документации
+app.include_router(films.router, prefix='/api/v1/films', tags=['films'])
 
 if __name__ == '__main__':
     uvicorn.run(
