@@ -1,0 +1,9 @@
+venv/
+.mypy_cache/
+.idea/
+__pycache__/
+.history/
+*.log
+.env
+.mypy_cache
+*.json
