@@ -1,3 +1,5 @@
+import typing
+
 import orjson
 from pydantic import BaseModel
 
@@ -11,12 +13,13 @@ class Film(BaseModel):
     creation_date: str | None
     idmb_rating: float | None
     type: str | None
-    director: str | None
-    actors_name: str | None
-    writers_name: str | None
-    actors: str | None
-    writers: str | None
-    genre: str | None
+    genre: typing.List[str]
+    actors: typing.List[str] | None
+    directors: typing.List[str] | None
+    writers: typing.List[str] | None
+    actors_names: typing.List[str] | None
+    directors_names: typing.List[str] | None
+    writers_names: typing.List[str] | None
 
     class Config:
         """Заменяем стандартную работу с json на более быструю."""
