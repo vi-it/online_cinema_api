@@ -6,6 +6,11 @@ from pydantic import BaseModel
 from src.models import utility
 
 
+class ID(BaseModel):
+    id: str
+    full_name: str
+
+
 class Film(BaseModel):
     id: str
     title: str
@@ -17,9 +22,9 @@ class Film(BaseModel):
     actors: typing.List[str] | None
     directors: typing.List[str] | None
     writers: typing.List[str] | None
-    actors_names: typing.List[str] | None
-    directors_names: typing.List[str] | None
-    writers_names: typing.List[str] | None
+    actors_names: typing.List[ID] | None
+    directors_names: typing.List[ID] | None
+    writers_names: typing.List[ID] | None
 
     class Config:
         """Заменяем стандартную работу с json на более быструю."""
