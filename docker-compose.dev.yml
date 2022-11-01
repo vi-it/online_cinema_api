@@ -1,18 +1,5 @@
 services:
 
-  app:
-    build:
-      context: ./.
-    env_file:
-      - ./.env
-    ports:
-      - "8000:8000"
-    volumes:
-      - fast_api:/app/data
-    depends_on:
-      - elastic
-      - redis
-
   elastic:
     image: elasticsearch:7.17.6
     environment:
@@ -32,5 +19,4 @@ services:
       - redis_src:/app/redis/data
 
 volumes:
-  fast_api:
   redis_src:
