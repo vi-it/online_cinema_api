@@ -1,6 +1,7 @@
 """
 Main script for running the program.
 """
+import datetime
 import logging
 import time
 
@@ -20,9 +21,10 @@ class PostgresToElastic:
     to Elasticsearch.
     """
 
-    def process_data(self) -> None:
+    @staticmethod
+    def process_data(start_time: str) -> None:
         """Run the process."""
-        extractor = PostgresExtractor()
+        extractor = PostgresExtractor(start_time)
         for index, index_mapper in upload.EST_INDEXES.items():
             transformer = transform.Transform(index)
             loader = upload.ElasticsearchLoader(index)
@@ -37,7 +39,9 @@ def main_func():
     """Main utility function for starting the data transfer."""
     pg_to_es = PostgresToElastic()
     while True:
-        pg_to_es.process_data()
+        start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        pg_to_es.process_data(start_time)
+        logger.info("Last time update Elasticsearch indexes - {}".format(start_time))
         time.sleep(DELAY)
 
 

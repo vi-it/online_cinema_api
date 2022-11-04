@@ -20,9 +20,10 @@ class PostgresExtractor:
     A class for extracting data from a PostgreSQL database.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, start_time: str) -> None:
         self.state = State(JsonFileStorage('state.json'))
         self.essence = None
+        self.start_time = start_time
         self.queries = {
             'movies': EXTRACT_QUERY_FILM,
             'persons': EXTRACT_QUERY_PERSONS,
@@ -34,11 +35,9 @@ class PostgresExtractor:
         Define the last time the data was retrieved to be able
         to update only the records that have been changed since then.
         """
-        modified = self.state.get_state(f'pg_state_{self.essence}')
+        modified = self.state.get_state(f'pg_modified_{self.essence}')
         if modified is None:
             modified = datetime.datetime.min.strftime('%Y-%m-%d %H:%M:%S')
-        else:
-            modified = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         return modified
 
     @backoff(exceptions=(psycopg2.OperationalError,))
@@ -71,7 +70,7 @@ class PostgresExtractor:
 
                 while data := pg_cursor.fetchmany(chunk):
                     self.state.set_state(f'pg_state_{self.essence}', data)
-                    self.state.set_state(f'pg_modified_{self.essence}', self._modified())
+                    self.state.set_state(f'pg_modified_{self.essence}', self.start_time)
                     logger.info("Extracted {} data from PostgreSQL".format(essence))
 
                     yield data
