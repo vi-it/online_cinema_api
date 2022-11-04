@@ -38,7 +38,7 @@ class PostgresExtractor:
         if modified is None:
             modified = datetime.datetime.min.strftime('%Y-%m-%d %H:%M:%S')
         else:
-            modified = self.state.get_state(f'pg_modified_{self.essence}')
+            modified = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         return modified
 
     @backoff(exceptions=(psycopg2.OperationalError,))
