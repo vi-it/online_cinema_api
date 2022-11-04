@@ -2,3 +2,5 @@
 /sqlite_to_postgres/
 /.env
 /etl/state.json
+.env
+__pycache__

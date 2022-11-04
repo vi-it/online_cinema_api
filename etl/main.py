@@ -2,12 +2,15 @@
 Main script for running the program.
 """
 import logging
-
-import elasticsearch
+import time
 
 import transform
 import upload
 from extract import PostgresExtractor
+from settings.setting_base import DELAY
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class PostgresToElastic:
@@ -20,22 +23,22 @@ class PostgresToElastic:
     def process_data(self) -> None:
         """Run the process."""
         extractor = PostgresExtractor()
-
-        for raw_data in extractor.extract():
-            for row in raw_data:
-                fw = transform.Transform(row)
-                film = fw.to_filmwork()
-
-                logging.info(film)
-
-                es_loader = upload.ElasticsearchLoader()
-                es_loader.upload_data(film)
+        for index, index_mapper in upload.EST_INDEXES.items():
+            transformer = transform.Transform(index)
+            loader = upload.ElasticsearchLoader(index)
+            for raw_data in extractor.extract(index):
+                for row in raw_data:
+                    obj = transformer.transform(row)
+                    logger.info(obj)
+                    loader.upload_data(obj)
 
 
 def main_func():
     """Main utility function for starting the data transfer."""
     pg_to_es = PostgresToElastic()
-    pg_to_es.process_data()
+    while True:
+        pg_to_es.process_data()
+        time.sleep(DELAY)
 
 
 if __name__ == '__main__':
