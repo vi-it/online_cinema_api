@@ -2,8 +2,6 @@
 The models containing Pydantic models designed for processing PostgreSQL
 data on movies and subsequent loading to the Elasticsearch index 'movies'.
 """
-import typing
-
 from pydantic import BaseModel
 
 
@@ -11,7 +9,25 @@ class Person(BaseModel):
     """ A model for data about movie crews (directors, actors, writers). """
     id: str
     name: str
-    role: str
+    role: str | None
+
+
+class PersonWithFilms(Person):
+    """ A model for data about person (directors, actors, writers). """
+    film_ids: list[str] | None
+
+
+class Genre(BaseModel):
+    """ A model for data about genre films. """
+    id: str
+    name: str
+
+
+class GenreWithDescription(Genre):
+    """ A model for data about genre films with description. """
+    id: str
+    name: str
+    description: str | None
 
 
 class Filmwork(BaseModel):
@@ -29,5 +45,5 @@ class Filmwork(BaseModel):
     writers_names: list[str] | None
     actors: list[Person] | None
     writers: list[Person] | None
-    genre: list[str] | None
-
+    directors: list[Person] | None
+    genre: list[Genre] | None
