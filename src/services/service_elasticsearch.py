@@ -7,12 +7,10 @@ import elasticsearch
 from fastapi import Depends
 import pydantic
 
-from src.core.config import (ES_INDEX_MOVIES, ES_INDEX_PERSONS,
-                             PERSON_CACHE_EXPIRE_IN_SECONDS)
+from src.core.config import CACHE_EXPIRE_IN_SECONDS
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
 from src import models
-from src.core.config import FILM_CACHE_EXPIRE_IN_SECONDS
 
 
 CINEMA_MODEL = typing.TypeVar('CINEMA_MODEL',
@@ -24,14 +22,13 @@ class ELTService:
     model.
     """
     def __init__(self,
-                 index: str,
                  model: pydantic.main.ModelMetaclass,
                  redis: Redis = Redis,
                  elastic: elasticsearch.AsyncElasticsearch =
                  elasticsearch.AsyncElasticsearch
                  ) -> None:
-        self.index = index
         self.model = model
+        self.index = self.model.alias
         self.redis = redis
         self.elastic = elastic
 
@@ -41,10 +38,10 @@ class ELTService:
         :param object_id: id
         :return:
         """
-        film = await self._get_from_cache(object_id)
-        if not film:
+        obj = await self._get_from_cache(object_id)
+        if not obj:
             item = await self._get_from_elastic(object_id)
-            if not film:
+            if not obj:
                 return None
             await self._put_to_cache(item)
 
@@ -58,7 +55,7 @@ class ELTService:
         :return:
         """
         try:
-            doc = await self.elastic.get(self.model.alias, object_id)
+            doc = await self.elastic.get(self.index, object_id)
         except elasticsearch.NotFoundError:
             return None
         return self.model(**doc['_source'])
@@ -73,8 +70,8 @@ class ELTService:
         if not data:
             return None
 
-        film = self.model.parse_raw(data)
-        return film
+        obj = self.model.parse_raw(data)
+        return obj
 
     async def _put_to_cache(self, item):
         """
@@ -83,5 +80,13 @@ class ELTService:
         :return:
         """
         await self.redis.set(item.id, item.json(),
-                             expire=FILM_CACHE_EXPIRE_IN_SECONDS)
+                             expire=CACHE_EXPIRE_IN_SECONDS)
 
+
+@lru_cache()
+def get_elt_service(
+        model: pydantic.main.ModelMetaclass,
+        redis: Redis = Depends(get_redis),
+        elastic: elasticsearch.AsyncElasticsearch = Depends(get_elastic),
+) -> ELTService:
+    return ELTService(model, redis, elastic)
