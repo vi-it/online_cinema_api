@@ -18,8 +18,8 @@ CINEMA_MODEL = typing.TypeVar('CINEMA_MODEL',
 
 class ELTService:
     """
-    A service that requests data from Elasticsearch and wraps it in a Pydantic
-    model.
+    Сервис, запрошивающий данные из индекса Elasticsearch и возвращающий их
+    в виде объекта(-ов) одной из моделей онлайн-кинотеатра.
     """
     def __init__(self,
                  model: pydantic.main.ModelMetaclass,
@@ -36,7 +36,7 @@ class ELTService:
         """
         Получить объект по id из Redis или Elasticsearch.
         :param object_id: id
-        :return:
+        :return: объект, относящийся к онлайн-кинотеатру
         """
         obj = await self._get_from_cache(object_id)
         if not obj:
@@ -45,8 +45,31 @@ class ELTService:
                 return None
             await self._put_to_cache(item)
 
-    async def search(self):
-        pass
+    async def search(self,
+                     query: str,
+                     page_number: int,
+                     page_size: int = 20) -> list[CINEMA_MODEL]:
+        """
+        Получить объекты из Elasticsearch в соответствии с запросом
+        пользователя.
+        :param query: поисковой запрос
+        :param page_number: номер страницы
+        :param page_size: размер страницы
+        :return: список объектов, относящихся к онлайн-кинотеатру
+        """
+        body = {
+            'size': page_size,
+            'from': (page_number - 1) * page_size,
+            'query': {
+                'simple_query_string': {
+                    "query": query,
+                    "default_operator": "and"
+                }
+            }
+        }
+        doc = await self.elastic.search(index=self.index, body=body)
+        objects = pydantic.parse_obj_as(list[self.model], doc['hits']['hits'])
+        return objects
 
     async def _get_from_elastic(self, object_id: str) -> CINEMA_MODEL:
         """
