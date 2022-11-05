@@ -9,6 +9,8 @@ services:
       - ES_JAVA_OPTS=-Xms200m -Xmx200m
     ports:
       - "9200:9200"
+    expose:
+      - 9200
     restart: on-failure
 
   postgres:
@@ -25,7 +27,6 @@ services:
       context: ./etl
     env_file:
       - ./etl/.env.example
-    command: tail -F anything
     depends_on:
       - postgres
       - elastic
