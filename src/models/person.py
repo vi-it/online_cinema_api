@@ -1,5 +1,3 @@
-import typing
-
 import orjson
 from pydantic import BaseModel
 
@@ -9,8 +7,8 @@ from src.models import utility
 class Person(BaseModel):
     id: str
     full_name: str
-    roles: typing.List[str]
-    films: typing.List[str]
+    role: str | None
+    film_ids: list[str | None]
 
     class Config:
         """Заменяем стандартную работу с json на более быструю."""

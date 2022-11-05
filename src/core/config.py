@@ -14,3 +14,13 @@ ELASTIC_HOST = os.getenv('ELASTIC_HOST', '127.0.0.1')
 ELASTIC_PORT = int(os.getenv('ELASTIC_PORT', 9200))
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+FILM_CACHE_EXPIRE_IN_SECONDS = 1 * 5
+GENRE_CACHE_EXPIRE_IN_SECONDS = 1 * 5
+PERSON_CACHE_EXPIRE_IN_SECONDS = 1 * 5
+
+ES_INDEX_GENRES = 'genres'
+ES_INDEX_PERSONS = 'persons'
+ES_INDEX_MOVIES = 'movies'
+
+ES_SIZE = 1000
