@@ -31,6 +31,29 @@ services:
     volumes:
       - redis_src:/app/redis/data
 
+    etl:
+      build: ./etl
+      env_file:
+        - .env.example
+      command: tail -F anything
+      depends_on:
+        - postgres
+        - elastic
+      expose:
+        - 8000
+
+      postgres:
+        image: postgres:13
+        env_file:
+          - .env.example
+        volumes:
+          - $HOME/postgresql/data:/var/lib/postgresql/data
+        expose:
+          - 5432
+    #    ports:
+    #      - '5432:5432'
+
 volumes:
   fast_api:
   redis_src:
+
