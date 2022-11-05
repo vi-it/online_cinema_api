@@ -19,6 +19,11 @@ class GenreService:
         self.index = ES_INDEX_GENRES
 
     async def get_by_id(self, genre_id: str):
+        """
+        Метод получения жанра по id из Redis или Elasticsearch.
+        :param genre_id: id жанра
+        :return:
+        """
         genre = await self._get_from_cache(genre_id)
         if not genre:
             genre = await self._get_genre_from_elastic(genre_id)
@@ -29,10 +34,20 @@ class GenreService:
         return genre
 
     async def _get_genre_from_elastic(self, genre_id: str) -> Optional[Genre]:
+        """
+        Метод получения жанра по id из Elasticsearch.
+        :param genre_id: id жанра
+        :return:
+        """
         doc = await self.elastic.get(self.index, genre_id)
         return Genre(**doc['_source'])
 
     async def _get_from_cache(self, genre_id: str) -> Optional[Genre]:
+        """
+        Метод получения жанра по id из Redis.
+        :param genre_id: id жанра
+        :return:
+        """
         data = await self.redis.get(genre_id)
         if not data:
             return
@@ -40,11 +55,20 @@ class GenreService:
         return genre
 
     async def _put_genre_to_cache(self, genre: Genre):
+        """
+        Метод записи жанра по id в Redis.
+        :param genre: жанр
+        :return:
+        """
         await self.redis.set(str(genre.id),
                              genre.json(),
                              expire=GENRE_CACHE_EXPIRE_IN_SECONDS)
 
     async def get_list(self) -> list[Genre]:
+        """
+        Метод получения списка жанров из Elasticsearch.
+        :return:
+        """
         doc = await self.elastic.search(index=self.index, size=ES_SIZE)
         list_genres = [Genre(**x['_source']) for x in doc['hits']['hits']]
         return list_genres

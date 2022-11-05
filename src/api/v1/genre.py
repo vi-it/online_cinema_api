@@ -10,6 +10,7 @@ router = APIRouter()
 
 
 class Genre(BaseModel):
+    """API Response model for genre."""
     id: str
     name: str
 
@@ -21,7 +22,7 @@ async def get_genres(
     genres = await genre_service.get_list()
     if not genres:
         return []
-    genres = [Genre(uuid=genre.id, name=genre.name) for genre in genres]
+    genres = [Genre(id=genre.id, name=genre.name) for genre in genres]
     return genres
 
 
