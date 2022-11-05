@@ -8,7 +8,7 @@ from src.models import utility
 
 class ID(BaseModel):
     id: str
-    full_name: str
+    name: str
 
 
 class Film(BaseModel):
@@ -16,15 +16,15 @@ class Film(BaseModel):
     title: str
     description: str | None
     creation_date: str | None
-    idmb_rating: float | None
+    imdb_rating: float | None
     type: str | None
-    genre: typing.List[str]
-    actors: typing.List[str] | None
-    directors: typing.List[str] | None
-    writers: typing.List[str] | None
-    actors_names: typing.List[ID] | None
-    directors_names: typing.List[ID] | None
-    writers_names: typing.List[ID] | None
+    genre: typing.List[ID] | None
+    actors: typing.List[ID] | None
+    directors: typing.List[ID] | None
+    writers: typing.List[ID] | None
+    actors_names: typing.List[str] | None
+    director: typing.List[str] | None
+    writers_names: typing.List[str] | None
 
     class Config:
         """Заменяем стандартную работу с json на более быструю."""
