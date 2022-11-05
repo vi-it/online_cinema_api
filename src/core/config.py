@@ -18,6 +18,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FILM_CACHE_EXPIRE_IN_SECONDS = 1 * 5
 GENRE_CACHE_EXPIRE_IN_SECONDS = 1 * 5
 PERSON_CACHE_EXPIRE_IN_SECONDS = 1 * 5
+CACHE_EXPIRE_IN_SECONDS = 1 * 5
 
 ES_INDEX_GENRES = 'genres'
 ES_INDEX_PERSONS = 'persons'
