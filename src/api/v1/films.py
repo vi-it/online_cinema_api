@@ -11,8 +11,9 @@ from src.services.service_elt import get_elt_service
 router = APIRouter()
 
 
-# @router.get('genre/{genre_id}', response_model=models.Genre)
-@router.get('/{film_id}', response_model=models.Film)
+@router.get('/film/{film_id}', response_model=models.Film)
+@router.get('/genre/{genre_id}', response_model=models.Genre)
+@router.get('/person/{person_id}', response_model=models.Person)
 async def get_obj_by_id(
         obj_id: str,
         request: Request,
