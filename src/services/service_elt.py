@@ -13,7 +13,7 @@ from src import models
 
 
 CINEMA_MODEL = typing.TypeVar('CINEMA_MODEL',
-                              models.Films, models.Person, models.Genre)
+                              models.Film, models.Person, models.Genre)
 
 class ELTService:
     """
@@ -21,13 +21,13 @@ class ELTService:
     в виде объекта(-ов) одной из моделей онлайн-кинотеатра.
     """
     def __init__(self,
-                 model: pydantic.main.ModelMetaclass,
+                 # model: pydantic.main.ModelMetaclass,
                  redis: Redis = Redis,
                  elastic: elasticsearch.AsyncElasticsearch =
                  elasticsearch.AsyncElasticsearch
                  ) -> None:
-        self.model = model
-        self.index = self.model.alias
+        self.model = models.Film
+        self.index = self.model.Config.alias
         self.redis = redis
         self.elastic = elastic
 
@@ -39,10 +39,10 @@ class ELTService:
         """
         obj = await self._get_from_cache(object_id)
         if not obj:
-            item = await self._get_from_elastic(object_id)
+            obj = await self._get_from_elastic(object_id)
             if not obj:
                 return None
-            await self._put_to_cache(item)
+            await self._put_to_cache(obj)
         return obj
 
     async def search(self,
@@ -108,8 +108,8 @@ class ELTService:
 
 @lru_cache()
 def get_elt_service(
-        model: pydantic.main.ModelMetaclass,
+        # model: pydantic.main.ModelMetaclass,
         redis: Redis = Depends(get_redis),
         elastic: elasticsearch.AsyncElasticsearch = Depends(get_elastic),
 ) -> ELTService:
-    return ELTService(model, redis, elastic)
+    return ELTService(redis, elastic)
