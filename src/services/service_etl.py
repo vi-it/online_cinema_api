@@ -1,7 +1,6 @@
 from functools import lru_cache
 import typing
 
-
 from aioredis import Redis
 import elasticsearch
 from fastapi import Depends
@@ -44,6 +43,7 @@ class ELTService:
             if not obj:
                 return None
             await self._put_to_cache(item)
+        return obj
 
     async def search(self,
                      query: str,
