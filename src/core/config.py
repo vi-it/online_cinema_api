@@ -20,6 +20,10 @@ GENRE_CACHE_EXPIRE_IN_SECONDS = 1 * 5
 PERSON_CACHE_EXPIRE_IN_SECONDS = 1 * 5
 CACHE_EXPIRE_IN_SECONDS = 1 * 5
 
+ES_INDEXES = {'films': ('movies', 'Film'),
+              'persons': ('persons', 'Person'),
+              'genre': ('genres', 'Genre')}
+
 ES_INDEX_GENRES = 'genres'
 ES_INDEX_PERSONS = 'persons'
 ES_INDEX_MOVIES = 'movies'

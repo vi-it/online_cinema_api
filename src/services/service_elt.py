@@ -1,4 +1,6 @@
 from functools import lru_cache
+import re
+import sys
 import typing
 
 from aioredis import Redis
@@ -6,14 +8,14 @@ import elasticsearch
 from fastapi import Depends
 import pydantic
 
-from src.core.config import CACHE_EXPIRE_IN_SECONDS
+from src.core.config import CACHE_EXPIRE_IN_SECONDS, ES_INDEXES
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
-from src import models
-
+# from src import models
+from src.models import Film, Genre, Person
 
 CINEMA_MODEL = typing.TypeVar('CINEMA_MODEL',
-                              models.Film, models.Person, models.Genre)
+                              Film, Person, Genre)
 
 class ELTService:
     """
@@ -26,17 +28,21 @@ class ELTService:
                  elastic: elasticsearch.AsyncElasticsearch =
                  elasticsearch.AsyncElasticsearch
                  ) -> None:
-        self.model = models.Film
-        self.index = self.model.Config.alias
         self.redis = redis
         self.elastic = elastic
 
-    async def get_by_id(self, object_id: str) -> CINEMA_MODEL:
+    def get_index(self, url):
+        key = re.split("/{1,2}", url)[4]
+        self.index = ES_INDEXES[key][0]
+        self.model = getattr(sys.modules[__name__], ES_INDEXES[key][1])
+
+    async def get_by_id(self, object_id: str, url: str) -> CINEMA_MODEL:
         """
         Получить объект по id из Redis или Elasticsearch.
         :param object_id: id
         :return: объект, относящийся к онлайн-кинотеатру
         """
+        self.get_index(url)
         obj = await self._get_from_cache(object_id)
         if not obj:
             obj = await self._get_from_elastic(object_id)
