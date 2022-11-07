@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 
 from src import models
@@ -18,8 +18,8 @@ async def get_many_objects(
         request: Request,
         service: ELTService = Depends(get_elt_service)
 ):
-    obj = await service.get_many(str(request.url))
-    return obj
+    res = await service.get_many(str(request.url))
+    return res
 
 
 @router.get('/film/{film_id}', response_model=models.Film)
@@ -30,10 +30,23 @@ async def get_object_by_id(
         request: Request,
         service: ELTService = Depends(get_elt_service)
 ):
-    obj = await service.get_by_id(obj_id, str(request.url))
-    if not obj:
+    res = await service.get_by_id(obj_id, str(request.url))
+    if not res:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND,
                             detail='Object not found')
-    return obj
+    return res
 
+
+# TODO: test the function and add examples of queries to README.md
+@router.get('/film/search', response_model=models.Film)
+@router.get('/genre/search', response_model=models.Genre)
+@router.get('/person/search', response_model=models.Person)
+async def get_query(
+        query: str,
+        page_size: int = Query(20, alias="page[size]"),
+        page_number: int = Query(1, alias="page[number]"),
+        service: ELTService = Depends(get_elt_service)
+):
+    res= await service.search(query, page_size, page_number)
+    return res
 
