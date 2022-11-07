@@ -1,12 +1,14 @@
+"""
+The module is responsible for requesting data from Elasticsearch.
+"""
 from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from pydantic import BaseModel
 
 from src import models
-from src.services.film import FilmService, get_film_service
 from src.services import ELTService
 from src.services.service_elt import get_elt_service
+
 
 router = APIRouter()
 
