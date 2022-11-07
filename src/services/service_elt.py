@@ -13,6 +13,7 @@ from src.db.elastic import get_elastic
 from src.db.redis import get_redis
 # from src import models
 from src.models import Film, Genre, Person
+from src.core.config import ES_SIZE
 
 CINEMA_MODEL = typing.TypeVar('CINEMA_MODEL',
                               Film, Person, Genre)
@@ -23,7 +24,6 @@ class ELTService:
     в виде объекта(-ов) одной из моделей онлайн-кинотеатра.
     """
     def __init__(self,
-                 # model: pydantic.main.ModelMetaclass,
                  redis: Redis = Redis,
                  elastic: elasticsearch.AsyncElasticsearch =
                  elasticsearch.AsyncElasticsearch
@@ -36,7 +36,7 @@ class ELTService:
         self.index = ES_INDEXES[key][0]
         self.model = getattr(sys.modules[__name__], ES_INDEXES[key][1])
 
-    async def get_by_id(self, object_id: str, url: str) -> CINEMA_MODEL:
+    async def get_by_id(self, object_id: str, url: str) -> CINEMA_MODEL | None:
         """
         Получить объект по id из Redis или Elasticsearch.
         :param object_id: id
@@ -50,6 +50,12 @@ class ELTService:
                 return None
             await self._put_to_cache(obj)
         return obj
+
+    async def get_many(self, url: str) -> list[CINEMA_MODEL | None]:
+        self.get_index(url)
+        doc = await self.elastic.search(index=self.index, size=ES_SIZE)
+        res = [self.model(**x['_source']) for x in doc['hits']['hits']]
+        return res
 
     async def search(self,
                      query: str,
