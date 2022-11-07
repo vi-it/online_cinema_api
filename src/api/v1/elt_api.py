@@ -49,6 +49,6 @@ async def get_query(
         page_number: int = Query(1, alias="page[number]"),
         service: ELTService = Depends(get_elt_service)
 ):
-    res= await service.search(query, page_size, page_number)
+    res = await service.search(query, page_size, page_number)
     return res
 
