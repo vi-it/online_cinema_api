@@ -42,8 +42,7 @@ async def shutdown():
     await redis.redis.wait_closed()
     await elastic.es.close()
 
-app.include_router(elt_api.router, prefix='/api/v1',
-                   tags=['films', 'genre', 'person'])
+app.include_router(elt_api.router, prefix='/api/v1', tags=['cinema'])
 
 if __name__ == '__main__':
     uvicorn.run(
