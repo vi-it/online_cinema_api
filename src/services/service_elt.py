@@ -120,7 +120,6 @@ class ELTService:
 
 @lru_cache()
 def get_elt_service(
-        # model: pydantic.main.ModelMetaclass,
         redis: Redis = Depends(get_redis),
         elastic: elasticsearch.AsyncElasticsearch = Depends(get_elastic),
 ) -> ELTService:
