@@ -1,12 +1,12 @@
 import orjson
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from src.models import utility
 
 
 class Person(BaseModel):
     id: str
-    full_name: str
+    full_name: str = Field(alias='name')
     role: str | None
     film_ids: list[str | None]
 

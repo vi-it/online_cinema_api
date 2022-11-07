@@ -1,7 +1,7 @@
 import typing
 
 import orjson
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from src.models import utility
 
@@ -28,5 +28,6 @@ class Film(BaseModel):
 
     class Config:
         """Заменяем стандартную работу с json на более быструю."""
+        alias = 'movies'
         json_loads = orjson.loads
         json_dumps = utility.orjson_dumps
