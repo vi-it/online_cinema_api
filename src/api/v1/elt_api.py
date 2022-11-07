@@ -52,3 +52,4 @@ async def get_query(
     res = await service.search(query, page_size, page_number)
     return res
 
+
