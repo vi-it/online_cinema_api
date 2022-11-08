@@ -6,23 +6,22 @@ import typing
 from aioredis import Redis
 import elasticsearch
 from fastapi import Depends
-import pydantic
 
 from src.core.config import CACHE_EXPIRE_IN_SECONDS, ES_INDEXES
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
-# from src import models
 from src.models import Film, Genre, Person
-from src.core.config import ES_SIZE
 
 CINEMA_MODEL = typing.TypeVar('CINEMA_MODEL',
                               Film, Person, Genre)
+
 
 class ELTService:
     """
     Сервис, запрошивающий данные из индекса Elasticsearch и возвращающий их
     в виде объекта(-ов) одной из моделей онлайн-кинотеатра.
     """
+
     def __init__(self,
                  redis: Redis = Redis,
                  elastic: elasticsearch.AsyncElasticsearch =
@@ -51,16 +50,20 @@ class ELTService:
             await self._put_to_cache(obj)
         return obj
 
-    async def get_many(self, url: str) -> list[CINEMA_MODEL | None]:
+    async def get_many(self, url: str, page_size: int, page_number: int) -> list[CINEMA_MODEL | None]:
         self.get_index(url)
-        doc = await self.elastic.search(index=self.index, size=ES_SIZE)
+        doc = await self.elastic.search(
+            index=self.index, from_=(page_number - 1) * page_size, size=page_size
+        )
         res = [self.model(**x['_source']) for x in doc['hits']['hits']]
         return res
 
-    async def search(self,
-                     query: str,
-                     page_number: int,
-                     page_size: int = 20) -> list[CINEMA_MODEL]:
+    async def search(
+            self,
+            query: str,
+            page_size: int,
+            page_number: int
+    ) -> list[CINEMA_MODEL]:
         """
         Получить объекты из Elasticsearch в соответствии с запросом
         пользователя.
@@ -80,10 +83,10 @@ class ELTService:
             }
         }
         doc = await self.elastic.search(index=self.index, body=body)
-        objects = pydantic.parse_obj_as(list[self.model], doc['hits']['hits'])
-        return objects
+        res = [self.model(**x['_source']) for x in doc['hits']['hits']]
+        return res
 
-    async def _get_from_elastic(self, object_id: str) -> CINEMA_MODEL:
+    async def _get_from_elastic(self, object_id: str) -> CINEMA_MODEL | None:
         """
         Обработать запрос объекта по id из Elasticsearch.
         :param object_id: id персоны
@@ -92,7 +95,7 @@ class ELTService:
         try:
             doc = await self.elastic.get(self.index, object_id)
         except elasticsearch.NotFoundError:
-            return None
+            return
         return self.model(**doc['_source'])
 
     async def _get_from_cache(self, object_id: str):
@@ -103,8 +106,7 @@ class ELTService:
         """
         data = await self.redis.get(object_id)
         if not data:
-            return None
-
+            return
         obj = self.model.parse_raw(data)
         return obj
 
@@ -114,7 +116,10 @@ class ELTService:
         :param item: персона
         :return:
         """
-        await self.redis.set(item.id, item.json(),
+        row = item.json()
+        if self.index == 'persons':
+            row = row.replace('full_name', 'name')
+        await self.redis.set(item.id, row,
                              expire=CACHE_EXPIRE_IN_SECONDS)
 
 

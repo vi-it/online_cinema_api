@@ -16,9 +16,9 @@ services:
   postgres:
     image: postgres:13
     env_file:
-      - .env.example
+      - .env
     volumes:
-      - $HOME/postgresql/data:/var/lib/postgresql/data
+      - $PWD/postgresql/data:/var/lib/postgresql/data
     expose:
       - 5432
 
@@ -26,17 +26,15 @@ services:
     build:
       context: ./etl
     env_file:
-      - ./etl/.env.example
+      - .env
     depends_on:
       - postgres
       - elastic
-    expose:
-      - 8000
 
   redis:
     image: redis:6.2.6
     ports:
-      - "6381:6381"
+      - "6379:6379"
     volumes:
       - redis_src:/app/redis/data
 

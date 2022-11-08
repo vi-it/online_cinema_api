@@ -1,7 +1,7 @@
 import typing
 
 import orjson
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from src.models import utility
 
