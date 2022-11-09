@@ -8,12 +8,31 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from src import models
 from src.core.config import settings
 from src.db.redis import redis_cache
-from src.services import ELTService
+from src.services import FilmService, GenreService, PersonService
 from src.services.person import PersonService, get_person_service
 from src.services.service_elt import get_elt_service
 
 
 router = APIRouter()
+
+
+@router.get('/film/', response_model=list[models.Film])
+@redis_cache(expired=settings.CACHE_EXPIRE_IN_SECONDS)
+async def get_films_list(
+        request: Request,
+        page_size: int = Query(20, alias="page[size]", ge=1),
+        page_number: int = Query(1, alias="page[number]", ge=1),
+        service: FilmService = Depends(get_elt_service)
+) -> list[settings.CINEMA_MODEL]:
+    """
+    GET a list of films according to the specified page size and number
+    of films in a list.
+    """
+    res = await service.get_many(str(request.url),
+                                 page_size,
+                                 page_number)
+    return res
+
 
 
 @router.get('/film/', response_model=list[models.Film])
