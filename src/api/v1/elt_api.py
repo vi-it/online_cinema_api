@@ -9,7 +9,7 @@ from src import models
 from src.core.config import settings
 from src.db.redis import redis_cache
 from src.services import FilmService, GenreService, PersonService
-from src.services.person import PersonService, get_person_service
+from src.services.person import get_person_service
 from src.services.service_elt import get_elt_service
 
 
@@ -40,7 +40,7 @@ async def get_genres_list(
         request: Request,
         page_size: int = Query(20, alias="page[size]", ge=1),
         page_number: int = Query(1, alias="page[number]", ge=1),
-        service: FilmService = Depends(get_elt_service)
+        service: GenreService = Depends(get_elt_service)
 ) -> list[models.Genre]:
     """
     GET a list of genres according to the specified page size and number
@@ -51,20 +51,38 @@ async def get_genres_list(
                                  page_number)
     return res
 
-@router.get('/film/', response_model=list[models.Film])
-@router.get('/genre/', response_model=list[models.Genre])
+
 @router.get('/person/', response_model=list[models.Person])
 @redis_cache(expired=settings.CACHE_EXPIRE_IN_SECONDS)
-async def get_many_objects(
+async def get_persons_list(
         request: Request,
-        page_size: int = Query(20, alias="page[size]"),
-        page_number: int = Query(1, alias="page[number]"),
-        service: ELTService = Depends(get_elt_service)
-) -> list[settings.CINEMA_MODEL]:
+        page_size: int = Query(20, alias="page[size]", ge=1),
+        page_number: int = Query(1, alias="page[number]", ge=1),
+        service: PersonService = Depends(get_elt_service)
+) -> list[models.Person]:
+    """
+    GET a list of persons according to the specified page size and number
+    of items in a list.
+    """
     res = await service.get_many(str(request.url),
                                  page_size,
                                  page_number)
     return res
+
+# @router.get('/film/', response_model=list[models.Film])
+# @router.get('/genre/', response_model=list[models.Genre])
+# @router.get('/person/', response_model=list[models.Person])
+# @redis_cache(expired=settings.CACHE_EXPIRE_IN_SECONDS)
+# async def get_many_objects(
+#         request: Request,
+#         page_size: int = Query(20, alias="page[size]"),
+#         page_number: int = Query(1, alias="page[number]"),
+#         service: ELTService = Depends(get_elt_service)
+# ) -> list[settings.CINEMA_MODEL]:
+#     res = await service.get_many(str(request.url),
+#                                  page_size,
+#                                  page_number)
+#     return res
 
 
 @router.get('/person/{person_id}/film/')
