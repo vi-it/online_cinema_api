@@ -13,7 +13,7 @@ from src.services.service_elt import ELTService
 
 class PersonService(ELTService):
     """
-    Сервис, запрошивающий данные о персонах из индекса Elasticsearch и
+    Сервис, запрошивающий данные о фильмах из индекса Elasticsearch и
     возвращающий их в виде объекта(-ов) одной из моделей онлайн-кинотеатра.
     """
 
