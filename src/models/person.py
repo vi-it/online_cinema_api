@@ -1,16 +1,11 @@
-import orjson
 from pydantic import BaseModel, Field
 
-from src.models import utility
+from src.models.base import BaseOrjsonModel
 
 
-class Person(BaseModel):
+class Person(BaseOrjsonModel):
     id: str
     full_name: str = Field(alias='name')
     role: str | None
     film_ids: list[str | None]
 
-    class Config:
-        """Заменяем стандартную работу с json на более быструю."""
-        json_loads = orjson.loads
-        json_dumps = utility.orjson_dumps
