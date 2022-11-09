@@ -30,7 +30,7 @@ services:
     env_file:
       - .env
     volumes:
-      - $PWD/postgresql/data:/var/lib/postgresql/data
+      - $HOME/postgresql/data:/var/lib/postgresql/data
     expose:
       - 5432
 
