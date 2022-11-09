@@ -6,7 +6,7 @@ from http import HTTPStatus
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from src import models
-from src.core.config import CACHE_EXPIRE_IN_SECONDS, CINEMA_MODEL
+from src.core.config import settings
 from src.db.redis import redis_cache
 from src.services import ELTService
 from src.services.person import PersonService, get_person_service
@@ -19,13 +19,13 @@ router = APIRouter()
 @router.get('/film/', response_model=list[models.Film])
 @router.get('/genre/', response_model=list[models.Genre])
 @router.get('/person/', response_model=list[models.Person])
-@redis_cache(expired=CACHE_EXPIRE_IN_SECONDS)
+@redis_cache(expired=settings.CACHE_EXPIRE_IN_SECONDS)
 async def get_many_objects(
         request: Request,
         page_size: int = Query(20, alias="page[size]"),
         page_number: int = Query(1, alias="page[number]"),
         service: ELTService = Depends(get_elt_service)
-) -> list[CINEMA_MODEL]:
+) -> list[settings.CINEMA_MODEL]:
     res = await service.get_many(str(request.url),
                                  page_size,
                                  page_number)
@@ -33,7 +33,7 @@ async def get_many_objects(
 
 
 @router.get('/person/{person_id}/film/')
-@redis_cache(expired=CACHE_EXPIRE_IN_SECONDS)
+@redis_cache(expired=settings.CACHE_EXPIRE_IN_SECONDS)
 async def person_films(
         request: Request,
         person_id: str,
@@ -54,12 +54,12 @@ async def person_films(
 
 
 @router.get('/film/{film_id}', response_model=models.Film)
-@redis_cache(expired=CACHE_EXPIRE_IN_SECONDS)
+@redis_cache(expired=settings.CACHE_EXPIRE_IN_SECONDS)
 async def get_object_by_id(
         request: Request,
         film_id: str,
         service: ELTService = Depends(get_elt_service)
-) -> list[CINEMA_MODEL]:
+) -> list[settings.CINEMA_MODEL]:
     """
     Get item by id
 
@@ -73,12 +73,12 @@ async def get_object_by_id(
     return res
 
 @router.get('/genre/{genre_id}', response_model=models.Genre)
-@redis_cache(expired=CACHE_EXPIRE_IN_SECONDS)
+@redis_cache(expired=settings.CACHE_EXPIRE_IN_SECONDS)
 async def get_object_by_id(
         request: Request,
         genre_id: str,
         service: ELTService = Depends(get_elt_service)
-) -> list[CINEMA_MODEL]:
+) -> list[settings.CINEMA_MODEL]:
     """
     Get item by id
 
@@ -92,12 +92,12 @@ async def get_object_by_id(
     return res\
 
 @router.get('/person/{person_id}', response_model=models.Person)
-@redis_cache(expired=CACHE_EXPIRE_IN_SECONDS)
+@redis_cache(expired=settings.CACHE_EXPIRE_IN_SECONDS)
 async def get_object_by_id(
         request: Request,
         person_id: str,
         service: ELTService = Depends(get_elt_service)
-) -> list[CINEMA_MODEL]:
+) -> list[settings.CINEMA_MODEL]:
     """
     Get item by id
 
@@ -119,7 +119,7 @@ async def get_query(
         page_size: int = Query(default=20, alias="page[size]"),
         page_number: int = Query(default=1, alias="page[number]"),
         service: ELTService = Depends(get_elt_service)
-) -> list[CINEMA_MODEL]:
+) -> list[settings.CINEMA_MODEL]:
     """
     Search films or persons by search query.
 

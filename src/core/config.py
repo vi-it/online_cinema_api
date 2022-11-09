@@ -2,39 +2,49 @@ import os
 import typing
 from logging import config as logging_config
 
+from pydantic import BaseSettings, Field
+
 from src import models
 from src.core.logger import LOGGING
 
+
 logging_config.dictConfig(LOGGING)
 
-PROJECT_NAME = os.getenv('PROJECT_NAME', 'movies')
 
-REDIS_HOST = os.getenv('REDIS_HOST', '127.0.0.1')
-REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
+class Settings(BaseSettings):
+    """The class contains settings for the project."""
+    BASE_DIR = Field(os.path.dirname(
+        os.path.dirname(os.path.abspath(__file__))))
 
-ELASTIC_HOST = os.getenv('ELASTIC_HOST', '127.0.0.1')
-ELASTIC_PORT = int(os.getenv('ELASTIC_PORT', 9200))
+    ELASTIC_HOST: str = Field('127.0.0.5', env='ELASTIC_HOST')
+    ELASTIC_PORT: int = Field(9200, env='ELASTIC_PORT')
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    REDIS_HOST: str = Field('127.0.0.1', env='REDIS_HOST')
+    REDIS_PORT: int = Field(6379, env='REDIS_PORT')
 
-FILM_CACHE_EXPIRE_IN_SECONDS = 10 * 5
-GENRE_CACHE_EXPIRE_IN_SECONDS = 10 * 5
-PERSON_CACHE_EXPIRE_IN_SECONDS = 10 * 5
-CACHE_EXPIRE_IN_SECONDS = 2 * 5
+    PROJECT_NAME = Field('movies', env='PROJECT_NAME')
 
-ES_INDEXES = {
-    'film': ('movies', 'Film'),
-    'genre': ('genres', 'Genre'),
-    'person': ('persons', 'Person')
-}
+    ES_INDEXES: dict = Field({
+        'film': ('movies', 'Film'),
+        'genre': ('genres', 'Genre'),
+        'person': ('persons', 'Person')
+    })
 
-ES_INDEX_GENRES = 'genres'
-ES_INDEX_PERSONS = 'persons'
-ES_INDEX_MOVIES = 'movies'
+    ES_INDEX_GENRES: str = Field('genres')
+    ES_INDEX_MOVIES: str = Field('movies')
+    ES_INDEX_PERSONS: str = Field('persons')
 
-ES_SIZE = 1000
+    ES_SIZE: int = Field(1000)
 
-CINEMA_MODEL = typing.TypeVar('CINEMA_MODEL',
-                              models.Film,
-                              models.Person,
-                              models.Genre)
+    CACHE_EXPIRE_IN_SECONDS: int = Field(2 * 5)
+    FILM_CACHE_EXPIRE_IN_SECONDS: int = Field(10 * 5)
+    GENRE_CACHE_EXPIRE_IN_SECONDS: int = Field(10 * 5)
+    PERSON_CACHE_EXPIRE_IN_SECONDS: int = Field(10 * 5)
+
+    CINEMA_MODEL = typing.TypeVar('CINEMA_MODEL',
+                                  models.Film,
+                                  models.Person,
+                                  models.Genre)
+
+settings = Settings()
+

@@ -6,10 +6,9 @@ from aioredis import Redis
 import elasticsearch
 from fastapi import Depends
 
-from src.core.config import CACHE_EXPIRE_IN_SECONDS, CINEMA_MODEL, ES_INDEXES
+from src.core.config import settings
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
-from src.models import Film, Genre, Person
 
 
 class ELTService:
@@ -28,10 +27,12 @@ class ELTService:
 
     def get_index(self, url):
         key = re.split("/{1,2}", url)[4]
-        self.index = ES_INDEXES[key][0]
-        self.model = getattr(sys.modules[__name__], ES_INDEXES[key][1])
+        self.index = settings.ES_INDEXES[key][0]
+        self.model = getattr(sys.modules[__name__], settings.ES_INDEXES[key][1])
 
-    async def get_by_id(self, object_id: str, url: str) -> CINEMA_MODEL | None:
+    async def get_by_id(self,
+                        object_id: str,
+                        url: str) -> settings.CINEMA_MODEL | None:
         """
         Получить объект по id из Redis или Elasticsearch.
         :param object_id: id
@@ -46,7 +47,9 @@ class ELTService:
             await self._put_to_cache(obj)
         return obj
 
-    async def get_many(self, url: str, page_size: int, page_number: int) -> list[CINEMA_MODEL | None]:
+    async def get_many(self, url: str,
+                       page_size: int,
+                       page_number: int) -> list[settings.CINEMA_MODEL | None]:
         self.get_index(url)
         doc = await self.elastic.search(
             index=self.index, from_=(page_number - 1) * page_size, size=page_size
@@ -59,7 +62,7 @@ class ELTService:
             query: str,
             page_size: int,
             page_number: int
-    ) -> list[CINEMA_MODEL]:
+    ) -> list[settings.CINEMA_MODEL]:
         """
         Получить объекты из Elasticsearch в соответствии с запросом
         пользователя.
@@ -82,7 +85,8 @@ class ELTService:
         res = [self.model(**x['_source']) for x in doc['hits']['hits']]
         return res
 
-    async def _get_from_elastic(self, object_id: str) -> CINEMA_MODEL | None:
+    async def _get_from_elastic(self, object_id: str) -> \
+            settings.CINEMA_MODEL | None:
         """
         Обработать запрос объекта по id из Elasticsearch.
         :param object_id: id персоны
@@ -116,7 +120,7 @@ class ELTService:
         if self.index == 'persons':
             row = row.replace('full_name', 'name')
         await self.redis.set(item.id, row,
-                             expire=CACHE_EXPIRE_IN_SECONDS)
+                             expire=settings.CACHE_EXPIRE_IN_SECONDS)
 
 
 @lru_cache()

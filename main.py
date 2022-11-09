@@ -7,12 +7,12 @@ from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
 from src.api.v1 import elt_api
-from src.core import config
+from src.core.config import settings
 from src.core.logger import LOGGING
 from src.db import elastic, redis
 
 app = FastAPI(
-    title=config.PROJECT_NAME,
+    title=settings.PROJECT_NAME,
     docs_url='/api/openapi',
     openapi_url='/api/openapi.json',
     default_response_class=ORJSONResponse,
@@ -28,10 +28,10 @@ async def startup() -> None:
     :return:
     """
     redis.redis = await aioredis.create_redis_pool(
-        (config.REDIS_HOST, config.REDIS_PORT), minsize=10, maxsize=20
+        (settings.REDIS_HOST, settings.REDIS_PORT), minsize=10, maxsize=20
     )
     elastic.es = AsyncElasticsearch(
-        hosts=[f'{config.ELASTIC_HOST}:{config.ELASTIC_PORT}']
+        hosts=[f'{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}']
     )
 
 

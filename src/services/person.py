@@ -4,7 +4,7 @@ from aioredis import Redis
 from elasticsearch import AsyncElasticsearch
 from fastapi import Depends
 
-from src.core.config import ES_INDEX_MOVIES
+from src.core.config import settings
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
 from src.models.film import Film
@@ -52,7 +52,8 @@ class PersonService(ELTService):
                     }
                 }
             )
-        doc = await self.elastic.search(index=ES_INDEX_MOVIES, body=body)
+        doc = await self.elastic.search(index=settings.ES_INDEX_MOVIES,
+                                        body=body)
         films = [Film(**item['_source']) for item in doc['hits']['hits']]
         return films
 

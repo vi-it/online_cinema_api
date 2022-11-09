@@ -6,10 +6,9 @@ import pydantic
 from aioredis import Redis
 from fastapi import Request
 
-from src.core.config import ES_INDEXES
+from src.core.config import settings
 from src.models.person import Person
-from src.models.genre import Genre
-from src.models.film import Film
+
 
 redis: Redis | None = None
 
@@ -26,7 +25,7 @@ def redis_cache(expired: int = 60):
         @functools.wraps(fn)
         async def decorated(request: Request, **kwargs):
             url_part = re.split("/", request.url.path)[-2]
-            model = getattr(sys.modules[__name__], ES_INDEXES[url_part][1])
+            model = getattr(sys.modules[__name__], settings.ES_INDEXES[url_part][1])
             key = hash(request.url.path + "?" + str(request.query_params))
             data = await _from_redis_cache(model, key)
 
