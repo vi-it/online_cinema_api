@@ -1,5 +1,10 @@
 __all__ = [
-    'ELTService'
+    'FilmService',
+    'GenreService',
+    'PersonService',
+
 ]
 
-from src.services.service_elt import ELTService
+from src.services.film import FilmService
+from src.services.genre import GenreService
+from src.services.person import PersonService

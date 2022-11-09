@@ -12,6 +12,10 @@ from src.services.service_elt import ELTService
 
 
 class PersonService(ELTService):
+    """
+    Сервис, запрошивающий данные о персонах из индекса Elasticsearch и
+    возвращающий их в виде объекта(-ов) одной из моделей онлайн-кинотеатра.
+    """
 
     async def get_films_by_person(self,
                                   person_id: str,
