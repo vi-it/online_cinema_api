@@ -5,17 +5,16 @@ import functools
 import pydantic
 from aioredis import Redis
 from fastapi import Request
-from typing import Optional
 
 from src.core.config import ES_INDEXES
 from src.models.person import Person
 from src.models.genre import Genre
 from src.models.film import Film
 
-redis: Optional[Redis] = None
+redis: Redis | None = None
 
 
-async def get_redis() -> Redis:
+async def get_redis() -> Redis | None:
     """Function for injecting dependency for Redis"""
     return redis
 

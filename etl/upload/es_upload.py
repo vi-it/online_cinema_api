@@ -1,5 +1,4 @@
 import logging
-import typing
 
 import elasticsearch
 import elasticsearch.helpers
@@ -24,7 +23,7 @@ class ElasticsearchLoader:
         self.index = index
 
     @backoff(exceptions=(elasticsearch.exceptions.ConnectionError,))
-    def upload_data(self, data: typing.List[Filmwork]) -> None:
+    def upload_data(self, data: list[Filmwork]) -> None:
         """Upload the data to the index."""
         self.check_index()
 

@@ -1,5 +1,3 @@
-import typing
-
 from pydantic import parse_obj_as
 
 from .models import (Filmwork, GenreWithDescription, Person,
@@ -25,9 +23,9 @@ class Transform:
     @staticmethod
     def to_filmwork(item) -> Filmwork:
         """Transform data in accordance with the Pydantic models."""
-        people = parse_obj_as(typing.List[Person],
+        people = parse_obj_as(list[Person],
                               item[0]['people'])
-        film = parse_obj_as(typing.List[Filmwork], item)[0]
+        film = parse_obj_as(list[Filmwork], item)[0]
 
         actors_ = [p for p in people if p.role == 'actor']
         writers_ = [p for p in people if p.role == 'writer']

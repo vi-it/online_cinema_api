@@ -1,19 +1,15 @@
 from functools import lru_cache
 import re
 import sys
-import typing
 
 from aioredis import Redis
 import elasticsearch
 from fastapi import Depends
 
-from src.core.config import CACHE_EXPIRE_IN_SECONDS, ES_INDEXES
+from src.core.config import CACHE_EXPIRE_IN_SECONDS, CINEMA_MODEL, ES_INDEXES
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
 from src.models import Film, Genre, Person
-
-CINEMA_MODEL = typing.TypeVar('CINEMA_MODEL',
-                              Film, Person, Genre)
 
 
 class ELTService:

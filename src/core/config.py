@@ -1,6 +1,8 @@
 import os
+import typing
 from logging import config as logging_config
 
+from src import models
 from src.core.logger import LOGGING
 
 logging_config.dictConfig(LOGGING)
@@ -31,3 +33,8 @@ ES_INDEX_PERSONS = 'persons'
 ES_INDEX_MOVIES = 'movies'
 
 ES_SIZE = 1000
+
+CINEMA_MODEL = typing.TypeVar('CINEMA_MODEL',
+                              models.Film,
+                              models.Person,
+                              models.Genre)

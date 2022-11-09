@@ -1,22 +1,17 @@
 """
 The module is responsible for requesting data from Elasticsearch.
 """
-import typing
 from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from src import models
-from src.core.config import CACHE_EXPIRE_IN_SECONDS
+from src.core.config import CACHE_EXPIRE_IN_SECONDS, CINEMA_MODEL
 from src.db.redis import redis_cache
 from src.services import ELTService
 from src.services.person import PersonService, get_person_service
 from src.services.service_elt import get_elt_service
 
-CINEMA_MODEL = typing.TypeVar('CINEMA_MODEL',
-                              models.Film,
-                              models.Person,
-                              models.Genre)
 
 router = APIRouter()
 
