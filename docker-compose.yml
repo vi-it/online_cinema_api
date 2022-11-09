@@ -21,8 +21,6 @@ services:
       - ingest.geoip.downloader.enabled=false
       - xpack.security.enabled=false
       - ES_JAVA_OPTS=-Xms200m -Xmx200m
-    ports:
-      - "9200:9200"
     restart: on-failure
 
   postgres:
@@ -45,8 +43,6 @@ services:
 
   redis:
     image: redis:6.2.6
-    ports:
-      - "6379:6379"
     volumes:
       - redis_src:/app/redis/data
 
