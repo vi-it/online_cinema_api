@@ -1,5 +1,3 @@
-import typing
-
 from src.models.base import BaseOrjsonModel
 
 
@@ -15,11 +13,10 @@ class Film(BaseOrjsonModel):
     creation_date: str | None
     imdb_rating: float | None
     type: str | None
-    genre: typing.List[ID] | None
-    actors: typing.List[ID] | None
-    directors: typing.List[ID] | None
-    writers: typing.List[ID] | None
-    actors_names: typing.List[str] | None
-    director: typing.List[str] | None
-    writers_names: typing.List[str] | None
-
+    genre: list[ID] | None
+    actors: list[ID] | None
+    directors: list[ID] | None
+    writers: list[ID] | None
+    actors_names: list[str] | None
+    director: list[str] | None
+    writers_names: list[str] | None
