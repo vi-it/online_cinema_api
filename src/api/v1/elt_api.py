@@ -8,7 +8,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from src import models
 from src.core.config import settings
 from src.db.redis import redis_cache
-from src.services import FilmService, GenreService, PersonService
+from src.services import (get_film_service, get_person_service,
+                          get_genre_service, FilmService, GenreService,
+                          PersonService)
 from src.services.person import get_person_service
 from src.services.service_elt import get_elt_service
 
@@ -22,7 +24,7 @@ async def get_films_list(
         request: Request,
         page_size: int = Query(20, alias="page[size]", ge=1),
         page_number: int = Query(1, alias="page[number]", ge=1),
-        service: FilmService = Depends(get_elt_service)
+        service: FilmService = Depends(get_film_service)
 ) -> list[models.Film]:
     """
     GET a list of films according to the specified page size and number
@@ -40,7 +42,7 @@ async def get_genres_list(
         request: Request,
         page_size: int = Query(20, alias="page[size]", ge=1),
         page_number: int = Query(1, alias="page[number]", ge=1),
-        service: GenreService = Depends(get_elt_service)
+        service: GenreService = Depends(get_genre_service)
 ) -> list[models.Genre]:
     """
     GET a list of genres according to the specified page size and number
@@ -58,7 +60,7 @@ async def get_persons_list(
         request: Request,
         page_size: int = Query(20, alias="page[size]", ge=1),
         page_number: int = Query(1, alias="page[number]", ge=1),
-        service: PersonService = Depends(get_elt_service)
+        service: PersonService = Depends(get_person_service)
 ) -> list[models.Person]:
     """
     GET a list of persons according to the specified page size and number
