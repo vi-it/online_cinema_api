@@ -23,10 +23,10 @@ async def get_films_list(
         page_size: int = Query(20, alias="page[size]", ge=1),
         page_number: int = Query(1, alias="page[number]", ge=1),
         service: FilmService = Depends(get_elt_service)
-) -> list[settings.CINEMA_MODEL]:
+) -> list[models.Film]:
     """
     GET a list of films according to the specified page size and number
-    of films in a list.
+    of items in a list.
     """
     res = await service.get_many(str(request.url),
                                  page_size,
@@ -34,6 +34,22 @@ async def get_films_list(
     return res
 
 
+@router.get('/genre/', response_model=list[models.Genre])
+@redis_cache(expired=settings.CACHE_EXPIRE_IN_SECONDS)
+async def get_genres_list(
+        request: Request,
+        page_size: int = Query(20, alias="page[size]", ge=1),
+        page_number: int = Query(1, alias="page[number]", ge=1),
+        service: FilmService = Depends(get_elt_service)
+) -> list[models.Genre]:
+    """
+    GET a list of genres according to the specified page size and number
+    of items in a list.
+    """
+    res = await service.get_many(str(request.url),
+                                 page_size,
+                                 page_number)
+    return res
 
 @router.get('/film/', response_model=list[models.Film])
 @router.get('/genre/', response_model=list[models.Genre])
