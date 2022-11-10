@@ -7,7 +7,6 @@ from pydantic import BaseSettings, Field
 from src import models
 from src.core.logger import LOGGING
 
-
 logging_config.dictConfig(LOGGING)
 
 
@@ -15,8 +14,9 @@ class Settings(BaseSettings):
     """The class contains settings for the project."""
     BASE_DIR = Field(os.path.dirname(
         os.path.dirname(os.path.abspath(__file__))))
+    DEBUG: str = Field('False', env='DEBUG')
 
-    ELASTIC_HOST: str = Field('127.0.0.5', env='ELASTIC_HOST')
+    ELASTIC_HOST: str = Field('127.0.0.1', env='ELASTIC_HOST')
     ELASTIC_PORT: int = Field(9200, env='ELASTIC_PORT')
 
     REDIS_HOST: str = Field('127.0.0.1', env='REDIS_HOST')
@@ -25,9 +25,9 @@ class Settings(BaseSettings):
     PROJECT_NAME = Field('movies', env='PROJECT_NAME')
 
     ES_INDEXES: dict = Field({
-        'film': ('movies', 'Film'),
-        'genre': ('genres', 'Genre'),
-        'person': ('persons', 'Person')
+        'films': ('movies', 'Film'),
+        'genres': ('genres', 'Genre'),
+        'persons': ('persons', 'Person')
     })
 
     ES_INDEX_GENRES: str = Field('genres')
@@ -46,5 +46,5 @@ class Settings(BaseSettings):
                                   models.Person,
                                   models.Genre)
 
-settings = Settings()
 
+settings = Settings()

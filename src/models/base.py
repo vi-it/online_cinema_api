@@ -1,6 +1,6 @@
+import orjson
 from pydantic import BaseModel
 
-import orjson
 from src.models import utility
 
 

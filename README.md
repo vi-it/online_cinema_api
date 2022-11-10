@@ -4,6 +4,13 @@
 развертывания и ревью кода. Ссылка:
 https://github.com/erlido/Async_API_sprint_1
 
+## Технологии:
+* Nginx;
+* Fastapi;
+* Postgresql;
+* Elasticsearch;
+* Redis.
+
 ## Установка и запуск проекта:
 
 1. Клонировать репозиторий на локальную машину.
@@ -23,3 +30,8 @@ docker-compose -f docker-compose.yml up --build
 ```
 docker-compose -f docker-compose.dev.yml up --build
 ```
+4. Документации API приведена на `http://127.0.0.1/api/openapi#/`.
+
+## Авторы проекта
+* [Ооржак Александр](https://github.com/Oorzhakau)
+* [Щуров Виталий](https://github.com/erlido)

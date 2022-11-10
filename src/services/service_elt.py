@@ -1,9 +1,9 @@
-from functools import lru_cache
 import re
 import sys
+from functools import lru_cache
 
-from aioredis import Redis
 import elasticsearch
+from aioredis import Redis
 from fastapi import Depends
 
 from src.core.config import settings
@@ -25,11 +25,13 @@ class ELTService:
                  ) -> None:
         self.redis = redis
         self.elastic = elastic
+        self.model = None
+        self.index = None
 
     def get_index(self, url):
         key = re.split("/{1,2}", url)[4]
         self.index = settings.ES_INDEXES[key][0]
-        self.model = getattr(sys.modules[__name__], settings.ES_INDEXES[key][1])
+        self.model = getattr(sys.modules['src.models'], settings.ES_INDEXES[key][1])
 
     async def get_by_id(self,
                         object_id: str,
@@ -39,7 +41,8 @@ class ELTService:
         :param object_id: id
         :return: объект, относящийся к онлайн-кинотеатру
         """
-        self.get_index(url)
+        if not self.model or not self.index:
+            self.get_index(url)
         obj = await self._get_from_cache(object_id)
         if not obj:
             obj = await self._get_from_elastic(object_id)
@@ -51,7 +54,8 @@ class ELTService:
     async def get_many(self, url: str,
                        page_size: int,
                        page_number: int) -> list[settings.CINEMA_MODEL | None]:
-        self.get_index(url)
+        if not self.model or not self.index:
+            self.get_index(url)
         doc = await self.elastic.search(
             index=self.index, from_=(page_number - 1) * page_size, size=page_size
         )
