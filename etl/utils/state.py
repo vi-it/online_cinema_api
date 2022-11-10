@@ -1,6 +1,6 @@
 import abc
 import json
-from typing import Any, Optional
+from typing import Any
 
 
 class BaseStorage:
@@ -16,7 +16,7 @@ class BaseStorage:
 
 
 class JsonFileStorage(BaseStorage):
-    def __init__(self, file_path: Optional[str] = None):
+    def __init__(self, file_path: str | None = None):
         self.file_path = file_path
 
     def save_state(self, state: dict) -> None:

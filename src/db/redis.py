@@ -1,33 +1,29 @@
-import sys
-import re
 import functools
 
 import pydantic
 from aioredis import Redis
 from fastapi import Request
-from typing import Optional
 
-from src.core.config import ES_INDEXES
+from src.core.config import settings
 from src.models.person import Person
-from src.models.genre import Genre
-from src.models.film import Film
 
-redis: Optional[Redis] = None
+redis: Redis | None = None
 
 
-async def get_redis() -> Redis:
+async def get_redis() -> Redis | None:
     """Function for injecting dependency for Redis"""
     return redis
 
 
-def redis_cache(expired: int = 60):
+def redis_cache(
+        model: settings.CINEMA_MODEL,
+        expired: int = 60,
+):
     """A decorator for caching."""
 
     def wrap(fn):
         @functools.wraps(fn)
         async def decorated(request: Request, **kwargs):
-            url_part = re.split("/", request.url.path)[-2]
-            model = getattr(sys.modules[__name__], ES_INDEXES[url_part][1])
             key = hash(request.url.path + "?" + str(request.query_params))
             data = await _from_redis_cache(model, key)
 

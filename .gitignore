@@ -4,7 +4,7 @@
 .idea/
 .mypy_cache
 .mypy_cache/
-/.env
+.env
 /commands
 /etl/state.json
 /sqlite_to_postgres/

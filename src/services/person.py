@@ -4,14 +4,23 @@ from aioredis import Redis
 from elasticsearch import AsyncElasticsearch
 from fastapi import Depends
 
-from src.core.config import ES_INDEX_MOVIES
+from src.core.config import settings
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
-from src.models.film import Film
+from src.models import Film, Person
 from src.services.service_elt import ELTService
 
 
 class PersonService(ELTService):
+    """
+    Сервис, запрошивающий данные о фильмах из индекса Elasticsearch и
+    возвращающий их в виде объекта(-ов) одной из моделей онлайн-кинотеатра.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(PersonService, self).__init__(*args, **kwargs)
+        self.model = Person
+        self.index = settings.ES_INDEX_PERSONS
 
     async def get_films_by_person(self,
                                   person_id: str,
@@ -52,7 +61,8 @@ class PersonService(ELTService):
                     }
                 }
             )
-        doc = await self.elastic.search(index=ES_INDEX_MOVIES, body=body)
+        doc = await self.elastic.search(index=settings.ES_INDEX_MOVIES,
+                                        body=body)
         films = [Film(**item['_source']) for item in doc['hits']['hits']]
         return films
 
