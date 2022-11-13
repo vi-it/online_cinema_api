@@ -1,3 +1,4 @@
+import abc
 import re
 import sys
 from functools import lru_cache
@@ -9,6 +10,74 @@ from fastapi import Depends
 from src.core.config import settings
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
+
+
+class ELTServiceProtocol(abc.ABC):
+    """An abstract class for ELTService."""
+    def __init__(self,
+                 redis: Redis,
+                 elastic: elasticsearch.AsyncElasticsearch) -> None:
+        pass
+
+    ##############################################
+    #  Properties
+    ##############################################
+
+    @property
+    @abc.abstractmethod
+    def redis(self) -> Redis: ...
+
+    @property
+    @abc.abstractmethod
+    def elastic(self) -> elasticsearch.AsyncElasticsearch: ...
+
+    @property
+    @abc.abstractmethod
+    def model(self) -> settings.CINEMA_MODEL: ...
+
+    @property
+    @abc.abstractmethod
+    def index(self) -> str: ...
+
+    ##############################################
+    # Private Methods
+    ##############################################
+
+    @abc.abstractmethod
+    def _get_index(self, url: str) -> None: ...
+
+    ##############################################
+    # Public Methods
+    ##############################################
+
+    @abc.abstractmethod
+    async def get_by_id(self,
+                        object_id: str,
+                        url: str) -> settings.CINEMA_MODEL | None: ...
+
+    @abc.abstractmethod
+    async def get_many(self, url: str,
+                       page_size: int,
+                       page_number: int) -> list[settings.CINEMA_MODEL | None]:
+        ...
+
+    @abc.abstractmethod
+    async def search(
+            self,
+            query: str,
+            page_size: int,
+            page_number: int
+    ) -> list[settings.CINEMA_MODEL]: ...
+
+    @abc.abstractmethod
+    async def _get_from_elastic(self, object_id: str) -> \
+            settings.CINEMA_MODEL | None: ...
+
+    @abc.abstractmethod
+    async def _get_from_cache(self, object_id: str): ...
+
+    @abc.abstractmethod
+    async def _put_to_cache(self, item): ...
 
 
 class ELTService:
@@ -124,8 +193,8 @@ class ELTService:
         row = item.json()
         if self.index == 'persons':
             row = row.replace('full_name', 'name')
-        await self.redis.set(item.id, row,
-                             expire=settings.CACHE_EXPIRE_IN_SECONDS)
+        await self._redis.set(item.id, row,
+                              expire=settings.CACHE_EXPIRE_IN_SECONDS)
 
 
 @lru_cache()
