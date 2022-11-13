@@ -1,0 +1,13 @@
+*.json
+*.log
+.history/
+.idea/
+.mypy_cache
+.mypy_cache/
+.env
+/commands
+/etl/state.json
+/sqlite_to_postgres/
+__pycache__
+__pycache__/
+venv/
