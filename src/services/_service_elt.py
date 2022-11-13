@@ -1,19 +1,21 @@
+"""
+This module contains the base asynchronous ELTService and its abstract class.
+"""
+
 import abc
 import re
 import sys
-from functools import lru_cache
 
 import elasticsearch
 from aioredis import Redis
-from fastapi import Depends
 
 from src.core.config import settings
-from src.db.elastic import get_elastic
-from src.db.redis import get_redis
 
 
 class ELTServiceProtocol(abc.ABC):
     """An abstract class for ELTService."""
+
+    @abc.abstractmethod
     def __init__(self,
                  redis: Redis,
                  elastic: elasticsearch.AsyncElasticsearch) -> None:
@@ -40,13 +42,6 @@ class ELTServiceProtocol(abc.ABC):
     def index(self) -> str: ...
 
     ##############################################
-    # Private Methods
-    ##############################################
-
-    @abc.abstractmethod
-    def _get_index(self, url: str) -> None: ...
-
-    ##############################################
     # Public Methods
     ##############################################
 
@@ -58,7 +53,7 @@ class ELTServiceProtocol(abc.ABC):
     @abc.abstractmethod
     async def get_many(self, url: str,
                        page_size: int,
-                       page_number: int) -> list[settings.CINEMA_MODEL | None]:
+                       page_number: int) -> list[settings.CINEMA_MODEL] | list:
         ...
 
     @abc.abstractmethod
@@ -66,32 +61,48 @@ class ELTServiceProtocol(abc.ABC):
             self,
             query: str,
             page_size: int,
-            page_number: int
-    ) -> list[settings.CINEMA_MODEL]: ...
+            page_number: int,
+    ) -> list[settings.CINEMA_MODEL] | list: ...
 
     @abc.abstractmethod
-    async def _get_from_elastic(self, object_id: str) -> \
-            settings.CINEMA_MODEL | None: ...
+    async def _get_from_elastic(
+            self, object_id: str) -> settings.CINEMA_MODEL | None: ...
 
     @abc.abstractmethod
-    async def _get_from_cache(self, object_id: str): ...
+    async def _get_from_cache(
+            self, object_id: str) -> settings.CINEMA_MODEL | None: ...
 
     @abc.abstractmethod
-    async def _put_to_cache(self, item): ...
+    async def _put_to_cache(self, item: settings.CINEMA_MODEL) -> None: ...
+
+    ##############################################
+    # Protected Methods
+    ##############################################
+
+    @abc.abstractmethod
+    def _get_index(self, url: str) -> None: ...
 
 
-class ELTService:
+class ELTService(ELTServiceProtocol):
     """
-    Родительский сервис, запрошивающий данные из индекса Elasticsearch и
-    возвращающий их в виде объекта(-ов) одной из моделей онлайн-кинотеатра.
-    Содержит реализацию общих для всех сущностей методов. Методы, специфичные
-    отдельным сущностям, реализуются в классах-наследниках.
+    Parent Service that requests data from an Elasticsearch index and wraps it
+    in a cinema model. The Service contains implementation of methods common to
+    all models. Methods specific to certain models are implemented in derived
+    classes.
     """
+
     def __init__(self,
                  redis: Redis = Redis,
                  elastic: elasticsearch.AsyncElasticsearch =
-                 elasticsearch.AsyncElasticsearch
+                 elasticsearch.AsyncElasticsearch,
                  ) -> None:
+        """
+        Initialize the class.
+
+        :param redis: Redis connections for retrieving data from caching
+        :param elastic: Elasticsearch connection for requesting data
+        """
+        super().__init__(redis, elastic)
         self._redis = redis
         self._elastic = elastic
         self._model = None
@@ -99,32 +110,40 @@ class ELTService:
 
     @property
     def redis(self) -> Redis:
+        """Return the Redis connection."""
         return self._redis
 
     @property
     def elastic(self) -> elasticsearch.AsyncElasticsearch:
+        """Return the Elasticsearch connection."""
         return self._elastic
 
     @property
     def model(self) -> settings.CINEMA_MODEL:
+        """Return the model class used for wrapping the API response."""
         return self._model
 
     @property
     def index(self) -> str:
+        """Return the Elasticsearch index that is being requested."""
         return self._index
 
     def _get_index(self, url: str) -> None:
-        key = re.split("/{1,2}", url)[4]
+        """Retrieve the Elasticsearch index to be requested."""
+        key = re.split('/{1,2}', url)[4]
         self._index = settings.ES_INDEXES[key][0]
-        self._model = getattr(sys.modules['src.models'], settings.ES_INDEXES[key][1])
+        self._model = getattr(sys.modules['src.models'],
+                              settings.ES_INDEXES[key][1])
 
     async def get_by_id(self,
                         object_id: str,
                         url: str) -> settings.CINEMA_MODEL | None:
         """
-        Получить объект по id из Redis или Elasticsearch.
+        Get the object by id from Redis or Elasticsearch.
+
         :param object_id: id
-        :return: объект, относящийся к онлайн-кинотеатру
+        :param url: URL to specify the Elasticsearch index.
+        :return: cinema model or None
         """
         if not self._model or not self._index:
             self._get_index(url)
@@ -138,11 +157,21 @@ class ELTService:
 
     async def get_many(self, url: str,
                        page_size: int,
-                       page_number: int) -> list[settings.CINEMA_MODEL | None]:
+                       page_number: int) -> list[settings.CINEMA_MODEL] | list:
+        """
+        GET a list of objects from Elasticsearch given page size and number.
+
+        :param url: URL to specify the target Elasticsearch index
+        :param page_size:
+        :param page_number:
+        :return: a list of requested cinema objects (or empty list in case
+            the response is empty)
+        """
         if not self._model or not self._index:
             self._get_index(url)
         doc = await self._elastic.search(
-            index=self._index, from_=(page_number - 1) * page_size, size=page_size
+            index=self._index, from_=(page_number - 1) * page_size,
+            size=page_size,
         )
         res = [self._model(**x['_source']) for x in doc['hits']['hits']]
         return res
@@ -151,23 +180,24 @@ class ELTService:
             self,
             query: str,
             page_size: int,
-            page_number: int
-    ) -> list[settings.CINEMA_MODEL]:
+            page_number: int,
+    ) -> list[settings.CINEMA_MODEL] | list:
         """
-        Получить объекты из Elasticsearch в соответствии с запросом
-        пользователя.
-        :param query: поисковой запрос
-        :param page_number: номер страницы
-        :param page_size: размер страницы
-        :return: список объектов, относящихся к онлайн-кинотеатру
+        GET objects from Elasticsearch according to the user's request.
+
+        :param query: search query
+        :param page_number: page number
+        :param page_size: page size
+        :return: a list of requested cinema objects (or empty list in case
+            the response is empty)
         """
         body = {
             'size': page_size,
             'from': (page_number - 1) * page_size,
             'query': {
                 'simple_query_string': {
-                    "query": query,
-                    "default_operator": "and"
+                    'query': query,
+                    'default_operator': 'and'
                 }
             }
         }
@@ -175,12 +205,13 @@ class ELTService:
         res = [self._model(**x['_source']) for x in doc['hits']['hits']]
         return res
 
-    async def _get_from_elastic(self, object_id: str) -> \
-            settings.CINEMA_MODEL | None:
+    async def _get_from_elastic(
+            self, object_id: str) -> settings.CINEMA_MODEL | None:
         """
-        Обработать запрос объекта по id из Elasticsearch.
-        :param object_id: id персоны
-        :return:
+        Handle the request to Elasticsearch based on object's id.
+
+        :param object_id: id
+        :return: cinema model or None
         """
         try:
             doc = await self._elastic.get(self._index, object_id)
@@ -188,34 +219,30 @@ class ELTService:
             return
         return self._model(**doc['_source'])
 
-    async def _get_from_cache(self, object_id: str):
+    async def _get_from_cache(self,
+                              object_id: str) -> settings.CINEMA_MODEL | None:
         """
-        Обработать запрос объекта по id из Redis.
+        Handle the request to Redis cache based on object's id.
+
         :param object_id: id персоны
-        :return:
+        :return: cinema model or None
         """
         data = await self._redis.get(object_id)
         if not data:
-            return
+            return None
         obj = self._model.parse_raw(data)
         return obj
 
-    async def _put_to_cache(self, item):
+    async def _put_to_cache(self, item: settings.CINEMA_MODEL) -> None:
         """
-        Записать объект по id в Redis.
-        :param item: персона
-        :return:
+        Put the object to Redis cache based on its id.
+
+        :param item: person
+        :return: None
         """
         row = item.json()
         if self._index == 'persons':
             row = row.replace('full_name', 'name')
-        await self._redis.set(item.id, row,
-                              expire=settings.CACHE_EXPIRE_IN_SECONDS)
-
-
-@lru_cache()
-def get_elt_service(
-        redis: Redis = Depends(get_redis),
-        elastic: elasticsearch.AsyncElasticsearch = Depends(get_elastic),
-) -> ELTService:
-    return ELTService(redis, elastic)
+        await self._redis.set(
+            item.id, row, expire=settings.CACHE_EXPIRE_IN_SECONDS,
+        )
