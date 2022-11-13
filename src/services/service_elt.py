@@ -92,15 +92,31 @@ class ELTService:
                  elastic: elasticsearch.AsyncElasticsearch =
                  elasticsearch.AsyncElasticsearch
                  ) -> None:
-        self.redis = redis
-        self.elastic = elastic
-        self.model = None
-        self.index = None
+        self._redis = redis
+        self._elastic = elastic
+        self._model = None
+        self._index = None
 
-    def get_index(self, url):
+    @property
+    def redis(self) -> Redis:
+        return self._redis
+
+    @property
+    def elastic(self) -> elasticsearch.AsyncElasticsearch:
+        return self._elastic
+
+    @property
+    def model(self) -> settings.CINEMA_MODEL:
+        return self._model
+
+    @property
+    def index(self) -> str:
+        return self._index
+
+    def _get_index(self, url: str) -> None:
         key = re.split("/{1,2}", url)[4]
-        self.index = settings.ES_INDEXES[key][0]
-        self.model = getattr(sys.modules['src.models'], settings.ES_INDEXES[key][1])
+        self._index = settings.ES_INDEXES[key][0]
+        self._model = getattr(sys.modules['src.models'], settings.ES_INDEXES[key][1])
 
     async def get_by_id(self,
                         object_id: str,
@@ -110,8 +126,8 @@ class ELTService:
         :param object_id: id
         :return: объект, относящийся к онлайн-кинотеатру
         """
-        if not self.model or not self.index:
-            self.get_index(url)
+        if not self._model or not self._index:
+            self._get_index(url)
         obj = await self._get_from_cache(object_id)
         if not obj:
             obj = await self._get_from_elastic(object_id)
@@ -123,12 +139,12 @@ class ELTService:
     async def get_many(self, url: str,
                        page_size: int,
                        page_number: int) -> list[settings.CINEMA_MODEL | None]:
-        if not self.model or not self.index:
-            self.get_index(url)
-        doc = await self.elastic.search(
-            index=self.index, from_=(page_number - 1) * page_size, size=page_size
+        if not self._model or not self._index:
+            self._get_index(url)
+        doc = await self._elastic.search(
+            index=self._index, from_=(page_number - 1) * page_size, size=page_size
         )
-        res = [self.model(**x['_source']) for x in doc['hits']['hits']]
+        res = [self._model(**x['_source']) for x in doc['hits']['hits']]
         return res
 
     async def search(
@@ -155,8 +171,8 @@ class ELTService:
                 }
             }
         }
-        doc = await self.elastic.search(index=self.index, body=body)
-        res = [self.model(**x['_source']) for x in doc['hits']['hits']]
+        doc = await self._elastic.search(index=self._index, body=body)
+        res = [self._model(**x['_source']) for x in doc['hits']['hits']]
         return res
 
     async def _get_from_elastic(self, object_id: str) -> \
@@ -167,10 +183,10 @@ class ELTService:
         :return:
         """
         try:
-            doc = await self.elastic.get(self.index, object_id)
+            doc = await self._elastic.get(self._index, object_id)
         except elasticsearch.NotFoundError:
             return
-        return self.model(**doc['_source'])
+        return self._model(**doc['_source'])
 
     async def _get_from_cache(self, object_id: str):
         """
@@ -178,10 +194,10 @@ class ELTService:
         :param object_id: id персоны
         :return:
         """
-        data = await self.redis.get(object_id)
+        data = await self._redis.get(object_id)
         if not data:
             return
-        obj = self.model.parse_raw(data)
+        obj = self._model.parse_raw(data)
         return obj
 
     async def _put_to_cache(self, item):
@@ -191,7 +207,7 @@ class ELTService:
         :return:
         """
         row = item.json()
-        if self.index == 'persons':
+        if self._index == 'persons':
             row = row.replace('full_name', 'name')
         await self._redis.set(item.id, row,
                               expire=settings.CACHE_EXPIRE_IN_SECONDS)
