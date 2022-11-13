@@ -8,7 +8,7 @@ from src.core.config import settings
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
 from src.models import Film
-from src.services.service_elt import ELTService
+from src.services._service_elt import ELTService
 
 
 class FilmService(ELTService):
@@ -18,9 +18,9 @@ class FilmService(ELTService):
     """
 
     def __init__(self, *args, **kwargs):
-        self.model = Film
-        self.index = settings.ES_INDEX_MOVIES
-        super(FilmService, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+        self._model = Film
+        self._index = settings.ES_INDEX_MOVIES
 
 
 @lru_cache()

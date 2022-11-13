@@ -3,8 +3,6 @@ This module contains the base asynchronous ELTService and its abstract class.
 """
 
 import abc
-import re
-import sys
 
 import elasticsearch
 from aioredis import Redis
@@ -79,9 +77,6 @@ class ELTServiceProtocol(abc.ABC):
     # Protected Methods
     ##############################################
 
-    @abc.abstractmethod
-    def _get_index(self, url: str) -> None: ...
-
 
 class ELTService(ELTServiceProtocol):
     """
@@ -128,13 +123,6 @@ class ELTService(ELTServiceProtocol):
         """Return the Elasticsearch index that is being requested."""
         return self._index
 
-    def _get_index(self, url: str) -> None:
-        """Retrieve the Elasticsearch index to be requested."""
-        key = re.split('/{1,2}', url)[4]
-        self._index = settings.ES_INDEXES[key][0]
-        self._model = getattr(sys.modules['src.models'],
-                              settings.ES_INDEXES[key][1])
-
     async def get_by_id(self,
                         object_id: str,
                         url: str) -> settings.CINEMA_MODEL | None:
@@ -145,8 +133,6 @@ class ELTService(ELTServiceProtocol):
         :param url: URL to specify the Elasticsearch index.
         :return: cinema model or None
         """
-        if not self._model or not self._index:
-            self._get_index(url)
         obj = await self._get_from_cache(object_id)
         if not obj:
             obj = await self._get_from_elastic(object_id)
@@ -167,8 +153,6 @@ class ELTService(ELTServiceProtocol):
         :return: a list of requested cinema objects (or empty list in case
             the response is empty)
         """
-        if not self._model or not self._index:
-            self._get_index(url)
         doc = await self._elastic.search(
             index=self._index, from_=(page_number - 1) * page_size,
             size=page_size,

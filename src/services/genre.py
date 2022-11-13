@@ -8,7 +8,7 @@ from src.core.config import settings
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
 from src.models import Genre
-from src.services.service_elt import ELTService
+from src.services._service_elt import ELTService
 
 
 class GenreService(ELTService):
@@ -18,9 +18,9 @@ class GenreService(ELTService):
     """
 
     def __init__(self, *args, **kwargs):
-        super(GenreService, self).__init__(*args, **kwargs)
-        self.model = Genre
-        self.index = settings.ES_INDEX_GENRES
+        super().__init__(*args, **kwargs)
+        self._model = Genre
+        self._index = settings.ES_INDEX_GENRES
 
 
 @lru_cache()

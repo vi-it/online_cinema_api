@@ -8,7 +8,7 @@ from src.core.config import settings
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
 from src.models import Film, Person
-from src.services.service_elt import ELTService
+from src.services._service_elt import ELTService
 
 
 class PersonService(ELTService):
@@ -18,9 +18,9 @@ class PersonService(ELTService):
     """
 
     def __init__(self, *args, **kwargs):
-        super(PersonService, self).__init__(*args, **kwargs)
-        self.model = Person
-        self.index = settings.ES_INDEX_PERSONS
+        super().__init__(*args, **kwargs)
+        self._model = Person
+        self._index = settings.ES_INDEX_PERSONS
 
     async def get_films_by_person(self,
                                   person_id: str,
