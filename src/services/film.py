@@ -1,3 +1,7 @@
+"""
+This module contains the asynchronous FilmService.
+"""
+
 from functools import lru_cache
 
 from aioredis import Redis
@@ -13,8 +17,8 @@ from src.services._service_elt import ELTService
 
 class FilmService(ELTService):
     """
-    Сервис, запрошивающий данные о фильмах из индекса Elasticsearch и
-    возвращающий их в виде объекта(-ов) одной из моделей онлайн-кинотеатра.
+    A service that requests film data from Elasticsearch and wraps it in a
+    model.
     """
 
     def __init__(self, *args, **kwargs):
@@ -28,4 +32,11 @@ def get_film_service(
         redis: Redis = Depends(get_redis),
         elastic: AsyncElasticsearch = Depends(get_elastic),
 ) -> FilmService:
+    """
+    Return the service that retrieves film data as a singleton.
+
+    Due to lru_caching the first call to the function instantiates the service,
+    and all subsequent calls to the function are handled by the same instance
+    of that service.
+    """
     return FilmService(redis, elastic)
