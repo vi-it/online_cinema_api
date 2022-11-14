@@ -62,6 +62,10 @@ class ELTServiceAbstract(abc.ABC):
             page_number: int,
     ) -> list[settings.CINEMA_MODEL] | list: ...
 
+    ##############################################
+    # Protected Methods
+    ##############################################
+
     @abc.abstractmethod
     async def _get_from_elastic(
             self, object_id: str) -> settings.CINEMA_MODEL | None: ...
@@ -72,10 +76,6 @@ class ELTServiceAbstract(abc.ABC):
 
     @abc.abstractmethod
     async def _put_to_cache(self, item: settings.CINEMA_MODEL) -> None: ...
-
-    ##############################################
-    # Protected Methods
-    ##############################################
 
 
 class ELTService(ELTServiceAbstract):
