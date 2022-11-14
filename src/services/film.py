@@ -22,6 +22,9 @@ class FilmService(ELTService):
     """
 
     def __init__(self, *args, **kwargs):
+        """
+        Initialize the class.
+        """
         super().__init__(*args, **kwargs)
         self._model = Film
         self._index = settings.ES_INDEX_MOVIES

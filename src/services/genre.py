@@ -22,6 +22,9 @@ class GenreService(ELTService):
     """
 
     def __init__(self, *args, **kwargs):
+        """
+        Initialize the class.
+        """
         super().__init__(*args, **kwargs)
         self._model = Genre
         self._index = settings.ES_INDEX_GENRES
