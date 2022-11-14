@@ -72,7 +72,6 @@ async def get_object_by_id(
             response_description="Return films",
             )
 async def get_query(
-        request: Request,
         query: str | None,
         page_size: int = Query(default=20, alias="page[size]"),
         page_number: int = Query(default=1, alias="page[number]"),
@@ -84,6 +83,5 @@ async def get_query(
     Examples:
     >>> http://127.0.0.1:8000/api/v1/films/search/?query=star
     """
-    service.get_index(str(request.url))
     res = await service.search(query=query, page_size=page_size, page_number=page_number)
     return res
