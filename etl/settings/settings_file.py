@@ -23,7 +23,6 @@ class ESTSettings(pydantic.BaseSettings):
     """Elasticsearc settings."""
     es_host: str = os.environ.get('ELASTIC_HOST')
     es_port: str = os.environ.get('ELASTIC_PORT')
-    es_indexes: list[str] = ['movies', 'persons', 'genres']
 
 
 PG = PGSettings(
