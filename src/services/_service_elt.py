@@ -10,7 +10,7 @@ from aioredis import Redis
 from src.core.config import settings
 
 
-class ELTServiceProtocol(abc.ABC):
+class ELTServiceAbstract(abc.ABC):
     """An abstract class for ELTService."""
 
     @abc.abstractmethod
@@ -78,12 +78,12 @@ class ELTServiceProtocol(abc.ABC):
     ##############################################
 
 
-class ELTService(ELTServiceProtocol):
+class ELTService(ELTServiceAbstract):
     """
-    Parent Service that requests data from an Elasticsearch index and wraps it
-    in a cinema model. The Service contains implementation of methods common to
-    all models. Methods specific to certain models are implemented in derived
-    classes.
+    Parent Service that requests data from an Elasticsearch index or retrieves
+    it from cash and wraps it in a cinema model. The Service contains
+    implementation of methods common to all models. Methods specific to certain
+    models are implemented in derived classes.
     """
 
     def __init__(self,
