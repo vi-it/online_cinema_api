@@ -1,3 +1,8 @@
+"""
+This module contains the asynchronous PersonService and its abstract class.
+"""
+
+import abc
 from functools import lru_cache
 
 from aioredis import Redis
@@ -8,30 +13,44 @@ from src.core.config import settings
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
 from src.models import Film, Person
-from src.services.service_elt import ELTService
+from src.services._service_elt import ELTService
 
 
-class PersonService(ELTService):
+class PersonServiceAbstract(abc.ABC):
+    """An abstract class for methods specific to PersonService."""
+
+    ##############################################
+    # Public Methods
+    ##############################################
+
+    async def get_films_by_person(self,
+                                  person_id: str,
+                                  page_size: int,
+                                  page_number: int) -> list[Film]: ...
+
+
+class PersonService(ELTService, PersonServiceAbstract):
     """
-    Сервис, запрошивающий данные о фильмах из индекса Elasticsearch и
-    возвращающий их в виде объекта(-ов) одной из моделей онлайн-кинотеатра.
+    A service that requests person data from Elasticsearch and wraps it in a
+    model.
     """
 
     def __init__(self, *args, **kwargs):
-        super(PersonService, self).__init__(*args, **kwargs)
-        self.model = Person
-        self.index = settings.ES_INDEX_PERSONS
+        super().__init__(*args, **kwargs)
+        self._model = Person
+        self._index = settings.ES_INDEX_PERSONS
 
     async def get_films_by_person(self,
                                   person_id: str,
                                   page_size: int,
                                   page_number: int) -> list[Film]:
         """
-        Метод получения фильмов персоны из Elasticsearch.
-        :param person_id: id персоны
-        :param page_size: размер страницы
-        :param page_number: номер страницы
-        :return:
+        Return films filtered by person.
+
+        :param person_id: person id
+        :param page_size: size of the page
+        :param page_number: number of the page
+        :return: list of films
         """
         roles = ['directors', 'actors', 'writers']
 
@@ -72,4 +91,11 @@ def get_person_service(
         redis: Redis = Depends(get_redis),
         elastic: AsyncElasticsearch = Depends(get_elastic),
 ) -> PersonService:
+    """
+    Return the service that retrieves person data as a singleton.
+
+    Due to lru_caching the first call to the function instantiates the service,
+    and all subsequent calls to the function are handled by the same instance
+    of that service.
+    """
     return PersonService(redis, elastic)

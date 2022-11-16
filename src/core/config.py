@@ -24,12 +24,6 @@ class Settings(BaseSettings):
 
     PROJECT_NAME = Field('movies', env='PROJECT_NAME')
 
-    ES_INDEXES: dict = Field({
-        'films': ('movies', 'Film'),
-        'genres': ('genres', 'Genre'),
-        'persons': ('persons', 'Person')
-    })
-
     ES_INDEX_GENRES: str = Field('genres')
     ES_INDEX_MOVIES: str = Field('movies')
     ES_INDEX_PERSONS: str = Field('persons')

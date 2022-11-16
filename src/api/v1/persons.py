@@ -76,7 +76,6 @@ async def get_object_by_id(
     expired=settings.CACHE_EXPIRE_IN_SECONDS
 )
 async def person_films(
-        request: Request,
         person_id: str,
         page_size: int = Query(20, alias="page[size]"),
         page_number: int = Query(1, alias="page[number]"),
@@ -100,7 +99,6 @@ async def person_films(
             response_description="Return persons",
             )
 async def get_query(
-        request: Request,
         query: str | None,
         page_size: int = Query(default=20, alias="page[size]"),
         page_number: int = Query(default=1, alias="page[number]"),
@@ -112,6 +110,5 @@ async def get_query(
     Examples:
     >>> http://127.0.0.1:8000/api/v1/persons/search/?query=marina
     """
-    service.get_index(str(request.url))
     res = await service.search(query=query, page_size=page_size, page_number=page_number)
     return res

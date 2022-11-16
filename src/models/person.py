@@ -7,5 +7,5 @@ class Person(BaseOrjsonModel):
     id: str
     full_name: str = Field(alias='name')
     role: str | None
-    film_ids: list[str | None]
+    film_ids: list[str] | list
 
