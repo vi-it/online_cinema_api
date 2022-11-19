@@ -1,4 +1,4 @@
-version: '3.10'
+version: "3.10"
 
 services:
   app:
@@ -27,8 +27,6 @@ services:
       && python3 /app/tests/functional/utils/wait_for_redis.py
       && pytest /app/tests/functional/src"
     depends_on:
-      - elastic
-      - redis
       - app
 
   elastic:
