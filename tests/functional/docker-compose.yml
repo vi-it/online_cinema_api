@@ -1,6 +1,6 @@
-version: '3.3'
-services:
+version: "3.10"
 
+services:
   app:
     build:
       context: ../../.
@@ -15,7 +15,6 @@ services:
     depends_on:
       - elastic
       - redis
-      - etl
 
   tests:
     image: fastapi-image
@@ -27,8 +26,6 @@ services:
       && python3 /app/tests/functional/utils/wait_for_redis.py
       && pytest /app/tests/functional/src"
     depends_on:
-      - elastic
-      - redis
       - app
 
   elastic:
@@ -51,21 +48,12 @@ services:
     volumes:
       - $PWD/postgresql/data:/var/lib/postgresql/data
 
-  etl:
-    build:
-      context: ../../etl
-    env_file:
-      - .env
-    depends_on:
-      - postgres
-      - elastic
-
   redis:
     image: redis:6.2.6
     volumes:
       - redis_src:/app/redis/data
     ports:
-      - "6379:6379"
+      - "6380:6380"
 
 volumes:
   redis_src:
