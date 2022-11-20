@@ -10,7 +10,7 @@ from aioredis import Redis
 from src.db.redis import get_redis
 
 
-class CacheAbstract:
+class CacheAbstract(abc.ABC):
     """An abstract class for cache storage."""
 
     @abc.abstractmethod

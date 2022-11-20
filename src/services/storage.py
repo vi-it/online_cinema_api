@@ -10,7 +10,7 @@ from elasticsearch import AsyncElasticsearch
 from src.db.elastic import get_elastic
 
 
-class StorageAbstract:
+class StorageAbstract(abc.ABC):
     """An abstract class for storage with fulltext search interface."""
 
     @abc.abstractmethod
