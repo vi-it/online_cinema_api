@@ -15,7 +15,6 @@ services:
     depends_on:
       - elastic
       - redis
-      - etl
 
   tests:
     image: fastapi-image
@@ -48,15 +47,6 @@ services:
       - "5432:5432"
     volumes:
       - $PWD/postgresql/data:/var/lib/postgresql/data
-
-  etl:
-    build:
-      context: ../../etl
-    env_file:
-      - .env
-    depends_on:
-      - postgres
-      - elastic
 
   redis:
     image: redis:6.2.6
