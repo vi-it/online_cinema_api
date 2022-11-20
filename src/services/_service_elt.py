@@ -3,11 +3,14 @@ This module contains the base asynchronous ELTService and its abstract class.
 """
 
 import abc
+from typing import Any
 
 import elasticsearch
 from aioredis import Redis
 
 from src.core.config import settings
+from src.services.cache import CacheAbstract, RedisCache
+from src.services.storage import ElasticStorage, StorageAbstract
 
 
 class ELTServiceAbstract(abc.ABC):
@@ -15,9 +18,9 @@ class ELTServiceAbstract(abc.ABC):
 
     @abc.abstractmethod
     def __init__(self,
-                 redis: Redis,
-                 elastic: elasticsearch.AsyncElasticsearch) -> None:
-        pass
+                 cache: CacheAbstract,
+                 storage: StorageAbstract) -> None:
+        ...
 
     ##############################################
     #  Properties
@@ -25,11 +28,11 @@ class ELTServiceAbstract(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def redis(self) -> Redis: ...
+    def cache(self) -> Any: ...
 
     @property
     @abc.abstractmethod
-    def elastic(self) -> elasticsearch.AsyncElasticsearch: ...
+    def storage(self) -> StorageAbstract: ...
 
     @property
     @abc.abstractmethod
@@ -67,7 +70,7 @@ class ELTServiceAbstract(abc.ABC):
     ##############################################
 
     @abc.abstractmethod
-    async def _get_from_elastic(
+    async def _get_from_storage(
             self, object_id: str) -> settings.CINEMA_MODEL | None: ...
 
     @abc.abstractmethod
@@ -87,29 +90,28 @@ class ELTService(ELTServiceAbstract):
     """
 
     def __init__(self,
-                 redis: Redis = Redis,
-                 elastic: elasticsearch.AsyncElasticsearch =
-                 elasticsearch.AsyncElasticsearch,
+                 cache: RedisCache,
+                 storage: ElasticStorage,
                  ) -> None:
         """
         Initialize the class.
 
-        :param redis: Redis connections for retrieving data from caching
+        :param cache: redis connections for retrieving data from caching
         :param elastic: Elasticsearch connection for requesting data
         """
-        super().__init__(redis, elastic)
-        self._redis = redis
-        self._elastic = elastic
+        self._redis = cache
+        self._elastic = storage
         self._model = None
         self._index = None
+        self._cache_expire = settings.CACHE_EXPIRE_IN_SECONDS
 
     @property
-    def redis(self) -> Redis:
+    def cache(self) -> Redis:
         """Return the Redis connection."""
-        return self._redis
+        return self._redis.client()
 
     @property
-    def elastic(self) -> elasticsearch.AsyncElasticsearch:
+    def storage(self) -> ElasticStorage:
         """Return the Elasticsearch connection."""
         return self._elastic
 
@@ -135,7 +137,7 @@ class ELTService(ELTServiceAbstract):
         """
         obj = await self._get_from_cache(object_id)
         if not obj:
-            obj = await self._get_from_elastic(object_id)
+            obj = await self._get_from_storage(object_id)
             if not obj:
                 return None
             await self._put_to_cache(obj)
@@ -189,7 +191,7 @@ class ELTService(ELTServiceAbstract):
         res = [self._model(**x['_source']) for x in doc['hits']['hits']]
         return res
 
-    async def _get_from_elastic(
+    async def _get_from_storage(
             self, object_id: str) -> settings.CINEMA_MODEL | None:
         """
         Handle the request to Elasticsearch based on object's id.
@@ -228,5 +230,5 @@ class ELTService(ELTServiceAbstract):
         if self._index == 'persons':
             row = row.replace('full_name', 'name')
         await self._redis.set(
-            item.id, row, expire=settings.CACHE_EXPIRE_IN_SECONDS,
+            item.id, row, expire=self._cache_expire,
         )

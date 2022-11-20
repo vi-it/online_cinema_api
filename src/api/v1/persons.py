@@ -76,6 +76,7 @@ async def get_object_by_id(
     expired=settings.CACHE_EXPIRE_IN_SECONDS
 )
 async def person_films(
+        request: Request,
         person_id: str,
         page_size: int = Query(20, alias="page[size]"),
         page_number: int = Query(1, alias="page[number]"),

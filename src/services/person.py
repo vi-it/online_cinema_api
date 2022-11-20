@@ -5,15 +5,13 @@ This module contains the asynchronous PersonService and its abstract class.
 import abc
 from functools import lru_cache
 
-from aioredis import Redis
-from elasticsearch import AsyncElasticsearch
 from fastapi import Depends
 
 from src.core.config import settings
-from src.db.elastic import get_elastic
-from src.db.redis import get_redis
 from src.models import Film, Person
 from src.services._service_elt import ELTService
+from src.services.cache import RedisCache, get_redis_extended
+from src.services.storage import ElasticStorage, get_elastic_extended
 
 
 class PersonServiceAbstract(abc.ABC):
@@ -39,6 +37,7 @@ class PersonService(ELTService, PersonServiceAbstract):
         super().__init__(*args, **kwargs)
         self._model = Person
         self._index = settings.ES_INDEX_PERSONS
+        self._cache_expire = settings.PERSON_CACHE_EXPIRE_IN_SECONDS
 
     async def get_films_by_person(self,
                                   person_id: str,
@@ -80,16 +79,16 @@ class PersonService(ELTService, PersonServiceAbstract):
                     }
                 }
             )
-        doc = await self.elastic.search(index=settings.ES_INDEX_MOVIES,
-                                        body=body)
+        doc = await self._elastic.search(index=settings.ES_INDEX_MOVIES,
+                                         body=body)
         films = [Film(**item['_source']) for item in doc['hits']['hits']]
         return films
 
 
 @lru_cache()
 def get_person_service(
-        redis: Redis = Depends(get_redis),
-        elastic: AsyncElasticsearch = Depends(get_elastic),
+        redis: RedisCache = Depends(get_redis_extended),
+        elastic: ElasticStorage = Depends(get_elastic_extended),
 ) -> PersonService:
     """
     Return the service that retrieves person data as a singleton.
