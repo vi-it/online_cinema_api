@@ -61,7 +61,7 @@ async def _to_redis_cache(key: int,
                           expire_time: int):
     """Store cache to Redis."""
     if type(data) is list:
-        if isinstance(data[0], Person):
+        if data and isinstance(data[0], Person):
             serialized_objs = [x.json().replace('full_name', 'name')
                                for x in data]
         else:
