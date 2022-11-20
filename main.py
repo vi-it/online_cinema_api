@@ -18,6 +18,7 @@ app = FastAPI(
     default_response_class=ORJSONResponse,
 )
 
+
 @app.on_event('startup')
 async def startup() -> None:
     """
@@ -47,7 +48,6 @@ app.include_router(films.router, prefix='/api/v1/films', tags=['films'])
 app.include_router(genres.router, prefix='/api/v1/genres', tags=['genres'])
 app.include_router(persons.router, prefix='/api/v1/persons', tags=['persons'])
 
-
 if __name__ == '__main__' and os.getenv('DEBUG') == 'True':
     import uvicorn
 
@@ -58,4 +58,3 @@ if __name__ == '__main__' and os.getenv('DEBUG') == 'True':
         log_config=LOGGING,
         log_level=logging.DEBUG,
     )
-
