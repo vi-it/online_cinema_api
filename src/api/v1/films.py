@@ -25,7 +25,7 @@ router = APIRouter()
 )
 async def get_films_list(
         request: Request,
-        page_size: int = Query(20, alias="page[size]", ge=1),
+        page_size: int = Query(50, alias="page[size]", ge=1),
         page_number: int = Query(1, alias="page[number]", ge=1),
         service: FilmService = Depends(get_film_service)
 ) -> list[Film]:
@@ -73,7 +73,7 @@ async def get_object_by_id(
             )
 async def get_query(
         query: str | None,
-        page_size: int = Query(default=20, alias="page[size]"),
+        page_size: int = Query(default=50, alias="page[size]"),
         page_number: int = Query(default=1, alias="page[number]"),
         service: FilmService = Depends(get_film_service)
 ) -> list[Film]:
