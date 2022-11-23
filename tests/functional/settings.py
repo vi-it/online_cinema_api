@@ -15,10 +15,10 @@ class TestSettings(BaseSettings):
     es_index_movies: str = Field('movies')
     es_index_persons: str = Field('persons')
     es_id_field: str = 'id'
-    # es_index_mapping: dict = ...
 
     redis_host: str = Field('127.0.0.1', env='REDIS_HOST')
-    redis_port: str = Field('6380', env='REDIS_PORT')
+    redis_port: str = Field('6379', env='REDIS_PORT')
+
     service_host: str = Field('127.0.0.1', env='PROJECT_HOST')
     service_port: str = Field('8000', env='PROJECT_PORT')
 

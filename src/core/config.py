@@ -30,7 +30,7 @@ class Settings(BaseSettings):
 
     ES_SIZE: int = Field(1000)
 
-    CACHE_EXPIRE_IN_SECONDS: int = Field(2 * 5)
+    CACHE_EXPIRE_IN_SECONDS: int = Field(10 * 5)
     FILM_CACHE_EXPIRE_IN_SECONDS: int = Field(10 * 5)
     GENRE_CACHE_EXPIRE_IN_SECONDS: int = Field(10 * 5)
     PERSON_CACHE_EXPIRE_IN_SECONDS: int = Field(10 * 5)

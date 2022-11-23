@@ -4,6 +4,7 @@
 .idea/
 .mypy_cache
 .mypy_cache/
+.pytest_cache
 .env
 /commands
 /etl/state.json

@@ -44,7 +44,7 @@ services:
     volumes:
       - redis_src:/app/redis/data
     ports:
-      - "6380:6380"
+      - "6379:6379"
 
 volumes:
   redis_src:
