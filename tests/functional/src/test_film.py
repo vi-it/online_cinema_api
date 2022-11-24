@@ -54,7 +54,7 @@ class TestFilmApi:
     async def test_cache_get_list(
         self,
         make_get_request,
-        expected_answer
+        expected_answer,
     ):
         """Test caching for GET films /api/v1/films/."""
         response = await make_get_request(url='films/')

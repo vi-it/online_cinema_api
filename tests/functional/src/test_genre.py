@@ -54,7 +54,7 @@ class TestGenreApi:
     async def test_cache_get_list(
             self,
             make_get_request,
-            expected_answer
+            expected_answer,
     ):
         """Test caching for GET genres /api/v1/genres/."""
         response = await make_get_request(url='genres/')
