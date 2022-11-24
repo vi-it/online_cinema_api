@@ -56,8 +56,32 @@ class TestFilmApi:
         make_get_request,
         expected_answer,
     ):
-        """Test caching for GET films /api/v1/films/."""
+        """Test caching for GET films at /api/v1/films/."""
+        # Run #
         response = await make_get_request(url='films/')
 
+        # Assertions #
         assert response.status == expected_answer.get('status')
         assert len(response.body) == expected_answer.get('length')
+
+    async def test_get_by_id(
+            self,
+            create_es_index,
+            es_write_data,
+            make_get_request,
+            films_factory,
+    ):
+        """ Test GET film by id at /api/v1/films/{film_id}."""
+        # Setup #
+        es_data = [films_factory().dict() for _ in range(5)]
+        create_es_index(index_name=test_settings.es_index_movies)
+        await es_write_data(es_data, test_settings.es_index_movies,
+                            test_settings.es_id_field)
+        film = Film(**es_data[0])
+
+        # Run #
+        response = await make_get_request(url=f'films/{film.id}')
+
+        # Assertions #
+        assert response.status == http.HTTPStatus.OK
+        assert Film(**response.body) == film.dict()
