@@ -7,7 +7,7 @@ import factory
 from .. import models
 
 
-class FilmFactory(factory.Factory):
+class FilmsFactory(factory.Factory):
     class Meta:
         model = models.Film
 
