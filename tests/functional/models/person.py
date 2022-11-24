@@ -5,7 +5,7 @@ from .base import BaseOrjsonModel
 
 class Person(BaseOrjsonModel):
     id: str
-    full_name: str = Field(alias='name')
+    name: str
     role: str | None
     film_ids: list[str] | list
 

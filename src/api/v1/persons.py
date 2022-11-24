@@ -25,7 +25,7 @@ router = APIRouter()
 )
 async def get_persons_list(
         request: Request,
-        page_size: int = Query(20, alias="page[size]", ge=1),
+        page_size: int = Query(50, alias="page[size]", ge=1),
         page_number: int = Query(1, alias="page[number]", ge=1),
         service: PersonService = Depends(get_person_service)
 ) -> list[Person]:
@@ -78,7 +78,7 @@ async def get_object_by_id(
 async def person_films(
         request: Request,
         person_id: str,
-        page_size: int = Query(20, alias="page[size]"),
+        page_size: int = Query(50, alias="page[size]"),
         page_number: int = Query(1, alias="page[number]"),
         person_service: PersonService = Depends(get_person_service)
 ) -> list[Film]:
@@ -101,7 +101,7 @@ async def person_films(
             )
 async def get_query(
         query: str | None,
-        page_size: int = Query(default=20, alias="page[size]"),
+        page_size: int = Query(default=50, alias="page[size]"),
         page_number: int = Query(default=1, alias="page[number]"),
         service: PersonService = Depends(get_person_service)
 ) -> list[Person]:

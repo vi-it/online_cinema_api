@@ -25,7 +25,7 @@ router = APIRouter()
 )
 async def get_genres_list(
         request: Request,
-        page_size: int = Query(20, alias="page[size]", ge=1),
+        page_size: int = Query(50, alias="page[size]", ge=1),
         page_number: int = Query(1, alias="page[number]", ge=1),
         service: GenreService = Depends(get_genre_service)
 ) -> list[Genre]:
