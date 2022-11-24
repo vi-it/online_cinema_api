@@ -48,3 +48,16 @@ class TestFilmApi:
         assert films_num == quantity
         assert len(response.body) == films_num
         assert res == expected
+
+    @pytest.mark.parametrize('expected_answer',
+                             [{'status': http.HTTPStatus.OK, 'length': 3}])
+    async def test_cache_get_list(
+        self,
+        make_get_request,
+        expected_answer
+    ):
+        """Test caching for GET films /api/v1/films/."""
+        response = await make_get_request(url='films/')
+
+        assert response.status == expected_answer.get('status')
+        assert len(response.body) == expected_answer.get('length')
