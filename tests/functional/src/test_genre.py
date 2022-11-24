@@ -48,20 +48,19 @@ class TestGenreApi:
         assert genres_num == quantity
         assert len(response.body) == genres_num
         assert res == expected
-#
-#     @pytest.mark.parametrize('expected_answer', [{'status': 200, 'length': 10}])
-#     async def test_cache_get_list(
-#             self,
-#             make_get_request,
-#             expected_answer
-#     ):
-#         """
-#         Test cache get genres /api/v1/genres/.
-#         """
-#         response = await make_get_request(url='genres/')
-#
-#         assert response.status == expected_answer.get('status')
-#         assert len(response.body) == expected_answer.get('length')
+
+    @pytest.mark.parametrize('expected_answer',
+                             [{'status': http.HTTPStatus.OK, 'length': 3}])
+    async def test_cache_get_list(
+            self,
+            make_get_request,
+            expected_answer
+    ):
+        """Test caching for GET genres /api/v1/genres/."""
+        response = await make_get_request(url='genres/')
+
+        assert response.status == expected_answer.get('status')
+        assert len(response.body) == expected_answer.get('length')
 #
 #     async def test_get_by_id(
 #             self,
