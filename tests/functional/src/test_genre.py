@@ -56,31 +56,36 @@ class TestGenreApi:
             make_get_request,
             expected_answer,
     ):
-        """Test caching for GET genres /api/v1/genres/."""
+        """Test caching for GET genres at /api/v1/genres/."""
+        # Run #
         response = await make_get_request(url='genres/')
 
+        # Assertions #
         assert response.status == expected_answer.get('status')
         assert len(response.body) == expected_answer.get('length')
-#
-#     async def test_get_by_id(
-#             self,
-#             create_es_index,
-#             es_write_data,
-#             make_get_request,
-#             genres_factory
-#     ):
-#         """
-#         Test get genre by id /api/v1/genres/{genre_id}.
-#         """
-#         es_data = [genres_factory().dict() for _ in range(10)]
-#         create_es_index(index_name=test_settings.es_index_genres)
-#         await es_write_data(es_data, test_settings.es_index_genres, test_settings.es_id_field)
-#         genre = Genre(**es_data[0])
-#         response = await make_get_request(url=f'genres/{genre.id}')
-#
-#         assert response.status == 200
-#         assert response.body == genre.dict(), "Get incorrect data"
-#
+
+    async def test_get_by_id(
+            self,
+            create_es_index,
+            es_write_data,
+            make_get_request,
+            genres_factory,
+    ):
+        """ Test GET genre by id at /api/v1/genres/{genre_id}."""
+        # Setup #
+        es_data = [genres_factory().dict() for _ in range(5)]
+        create_es_index(index_name=test_settings.es_index_genres)
+        await es_write_data(es_data, test_settings.es_index_genres,
+                            test_settings.es_id_field)
+        genre = Genre(**es_data[0])
+
+        # Run #
+        response = await make_get_request(url=f'genres/{genre.id}')
+
+        # Assertions #
+        assert response.status == http.HTTPStatus.OK
+        assert Genre(**response.body) == genre.dict()
+
 #     async def test_not_found(
 #             self,
 #             make_get_request,
