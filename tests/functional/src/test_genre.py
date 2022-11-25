@@ -86,13 +86,17 @@ class TestGenreApi:
         assert response.status == http.HTTPStatus.OK
         assert Genre(**response.body) == genre.dict()
 
-#     async def test_not_found(
-#             self,
-#             make_get_request,
-#     ):
-#         """
-#         Test status response when genre not found by id /api/v1/genres/{genre_id}.
-#         """
-#         response = await make_get_request(url=f'genres/test-uid')
-#
-#         assert response.status == 404
+    async def test_not_found(
+            self,
+            make_get_request,
+    ):
+        """
+        Test the response status when genre is not found by id at
+        /api/v1/genres/{genre_id}.
+        """
+        # Run #
+        response = await make_get_request(url=f'genres/test-uid')
+
+        # Assertions #
+        assert response.status == http.HTTPStatus.NOT_FOUND
+        assert response.body == {'detail': 'Genre with id test-uid not found'}
