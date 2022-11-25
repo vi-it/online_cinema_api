@@ -51,20 +51,21 @@ class TestPersonApi:
         assert len(response.body) == persons_num
         assert res == expected
 
-#     @pytest.mark.parametrize('expected_answer', [{'status': 200, 'length': 50}])
-#     async def test_cache_get_list(
-#             self,
-#             make_get_request,
-#             expected_answer
-#     ):
-#         """
-#         Test cache get person lest /api/v1/persons/.
-#         """
-#         response = await make_get_request(url='persons/', query_data="")
-#
-#         assert response.status == expected_answer.get('status')
-#         assert len(response.body) == expected_answer.get('length')
-#
+    @pytest.mark.parametrize('expected_answer',
+                             [{'status': http.HTTPStatus.OK, 'length': 3}])
+    async def test_cache_get_list(
+            self,
+            make_get_request,
+            expected_answer
+    ):
+        """Test caching for GET person at /api/v1/persons/."""
+        # Run #
+        response = await make_get_request(url='persons/')
+
+        # Assertions #
+        assert response.status == expected_answer.get('status')
+        assert len(response.body) == expected_answer.get('length')
+
 #     async def test_get_by_id(
 #             self,
 #             create_es_index,
