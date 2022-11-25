@@ -62,7 +62,7 @@ async def get_object_by_id(
     res = await service.get_by_id(film_id, str(request.url))
     if not res:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND,
-                            detail=f'Film with {film_id} not found')
+                            detail=f'Film with id {film_id} not found')
     return res
 
 

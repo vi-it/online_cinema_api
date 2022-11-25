@@ -62,7 +62,7 @@ async def get_object_by_id(
     res = await service.get_by_id(person_id, str(request.url))
     if not res:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND,
-                            detail=f'Person with {person_id} not found')
+                            detail=f'Person with id {person_id} not found')
     return res
 
 
