@@ -66,36 +66,43 @@ class TestPersonApi:
         assert response.status == expected_answer.get('status')
         assert len(response.body) == expected_answer.get('length')
 
-#     async def test_get_by_id(
-#             self,
-#             create_es_index,
-#             es_write_data,
-#             make_get_request,
-#             persons_factory,
-#     ):
-#         """
-#         Test get person by id /api/v1/persons/{person_id}.
-#         """
-#         es_data = [persons_factory().dict() for _ in range(10)]
-#         create_es_index(index_name="persons")
-#         await es_write_data(es_data, test_settings.es_index_persons, test_settings.es_id_field)
-#         person = Person(**es_data[0])
-#         response = await make_get_request(url=f'persons/{person.id}')
-#
-#         assert response.status == 200
-#         assert response.body == person.dict(), "Get incorrect data"
-#
-#     async def test_not_found(
-#             self,
-#             make_get_request,
-#     ):
-#         """
-#         Test status response when person not found by id /api/v1/persons/{person_id}.
-#         """
-#         response = await make_get_request(url=f'persons/test-uid')
-#
-#         assert response.status == 404
-#
+    async def test_get_by_id(
+            self,
+            create_es_index,
+            es_write_data,
+            make_get_request,
+            persons_factory,
+    ):
+        """Test GET person by id at /api/v1/persons/{person_id}."""
+        # Setup #
+        es_data = [persons_factory().dict() for _ in range(5)]
+        create_es_index(index_name=test_settings.es_index_persons)
+        await es_write_data(es_data, test_settings.es_index_persons,
+                            test_settings.es_id_field)
+        person = Person(**es_data[0])
+
+        # Run #
+        response = await make_get_request(url=f'persons/{person.id}')
+
+        # Assertions #
+        assert response.status == 200
+        assert Person(**response.body) == person.dict()
+
+    async def test_not_found(
+            self,
+            make_get_request,
+    ):
+        """
+        Test the response status when when person is not found by id at
+        /api/v1/persons/{person_id}.
+        """
+        # Run #
+        response = await make_get_request(url=f'persons/test-uid')
+
+        # Assertions #
+        assert response.status == http.HTTPStatus.NOT_FOUND
+        assert response.body == {'detail': 'Person with id test-uid not found'}
+
 #     async def test_search(
 #             self,
 #             storages_clean,
