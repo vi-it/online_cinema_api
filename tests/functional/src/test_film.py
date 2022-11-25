@@ -85,3 +85,18 @@ class TestFilmApi:
         # Assertions #
         assert response.status == http.HTTPStatus.OK
         assert Film(**response.body) == film.dict()
+
+    async def test_not_found(
+            self,
+            make_get_request,
+    ):
+        """
+        Test the response status when film is not found by id at
+        /api/v1/films/{film_id}.
+        """
+        # Run #
+        response = await make_get_request(url=f'films/test-uid')
+
+        # Assertions #
+        assert response.status == http.HTTPStatus.NOT_FOUND
+        assert response.body == {'detail': 'Film with id test-uid not found'}
