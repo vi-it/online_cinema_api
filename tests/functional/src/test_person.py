@@ -103,29 +103,37 @@ class TestPersonApi:
         assert response.status == http.HTTPStatus.NOT_FOUND
         assert response.body == {'detail': 'Person with id test-uid not found'}
 
-#     async def test_search(
-#             self,
-#             storages_clean,
-#             create_es_index,
-#             es_write_data,
-#             make_get_request,
-#             persons_factory,
-#     ):
-#         """
-#         Test search /api/v1/persons/search/?query=marina.
-#         """
-#         await storages_clean(index_name=test_settings.es_index_persons)
-#
-#         test_name = ["Marina", "Ivan", "Alexander", "Ksysha", "Vladimir"]
-#         es_data = [persons_factory(name=test_name[i]).dict() for i in range(5)]
-#         create_es_index(index_name=test_settings.es_index_persons)
-#         await es_write_data(es_data, test_settings.es_index_persons, test_settings.es_id_field)
-#         person = Person(**es_data[0])
-#         response = await make_get_request(url=f'persons/search/?query=marina')
-#
-#         assert response.status == 200
-#         assert response.body[0] == person.dict(), "Response involve incorrect data"
-#
+    async def test_search(
+            self,
+            storages_clean,
+            create_es_index,
+            es_write_data,
+            make_get_request,
+            persons_factory,
+    ):
+        """
+        Test search with a parametrized request at
+        /api/v1/persons/search/?query=marina.
+        """
+        # Setup #
+        await storages_clean(index_name=test_settings.es_index_persons)
+
+        test_name = ["Marina", "Ivan", "Alexander", "Ksysha", "Vladimir"]
+        es_data = [persons_factory(name=n).dict() for n in test_name]
+
+        create_es_index(index_name=test_settings.es_index_persons)
+        await es_write_data(es_data, test_settings.es_index_persons,
+                            test_settings.es_id_field)
+        person = Person(**es_data[0])
+
+        # Run #
+        response = await make_get_request(url=f'persons/search/?query=marina')
+
+        # Assertions #
+        assert response.status == http.HTTPStatus.OK
+        assert len(response.body) == 1
+        assert response.body[0] == person.dict()
+
 #     async def test_person_films(self):
 #         """
 #         Test get person films /api/v1/persons/{person_id}/film/
