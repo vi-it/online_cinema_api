@@ -17,6 +17,7 @@ class TestSettings(BaseSettings):
 
     redis_host: str = Field('redis', env='REDIS_HOST')
     redis_port: str = Field('6379', env='REDIS_PORT')
+    redis_connection_timeout = Field(60, env='REDIS_CONNECTION_TIMEOUT')
 
     service_host: str = Field('app', env='PROJECT_HOST')
     service_port: str = Field('8000', env='PROJECT_PORT')
