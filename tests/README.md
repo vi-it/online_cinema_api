@@ -1,3 +1,6 @@
+## Ссылка на репозиторий
+https://github.com/erlido/Async_API_sprint_2
+
 ## Технологии:
 * Docker;
 * Pytest.
