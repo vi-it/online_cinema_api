@@ -1,0 +1,50 @@
+version: "3.10"
+
+services:
+  app:
+    build:
+      context: ../../.
+    image: fastapi-image
+    env_file:
+      - .env
+    volumes:
+      - ../../src:/app/src
+      - ../../tests:/app/tests
+    ports:
+      - "8000:8000"
+    depends_on:
+      - elastic
+      - redis
+
+  tests:
+    image: fastapi-image
+    env_file:
+      - .env
+    entrypoint: >
+      sh -c "pip install -r /app/tests/functional/requirements.txt
+      && python3 /app/tests/functional/utils/wait_for_es.py
+      && python3 /app/tests/functional/utils/wait_for_redis.py
+      && pytest /app/tests/functional/src"
+    depends_on:
+      - app
+
+  elastic:
+    image: elasticsearch:7.17.6
+    environment:
+      - discovery.type=single-node
+      - ingest.geoip.downloader.enabled=false
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms200m -Xmx200m
+    ports:
+      - "9200:9200"
+    restart: on-failure
+
+  redis:
+    image: redis:6.2.6
+    volumes:
+      - redis_src:/app/redis/data
+    ports:
+      - "6380:6379"
+
+volumes:
+  redis_src:
