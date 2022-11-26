@@ -24,7 +24,7 @@ def wait_elasticsearch():
     # is run as a stand-alone script
     host = os.getenv('ELASTIC_HOST', default='127.0.0.1')
     port = os.getenv('ELASTIC_PORT', default='9200')
-    logger.info('Starting a check if Elasticsearch is up...')
+    logger.info('Starting to check if Elasticsearch is up...')
     es_client = Elasticsearch(
         hosts=f'http://{host}:{port}',
         validate_cert=False,
