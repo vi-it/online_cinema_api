@@ -4,7 +4,6 @@ This module tests API that handles person data.
 
 import http
 import random
-import uuid
 
 import faker
 import pytest
