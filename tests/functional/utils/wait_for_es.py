@@ -2,15 +2,16 @@
 This module is used by Docker Compose to find out if Elasticsearch is okay.
 """
 
+import logging.config  # noqa: WPS301
 import os
 import time
 
 from elasticsearch import Elasticsearch
 
-import logging.config
-
-logging.config.fileConfig(fname='tests/functional/log.conf',
-                          disable_existing_loggers=False)
+logging.config.fileConfig(
+    fname='tests/functional/log.conf',
+    disable_existing_loggers=False,
+)
 logger = logging.getLogger(__name__)
 
 
@@ -33,7 +34,7 @@ def wait_elasticsearch():
     while True:
         logger.info(f'Trying to ping Elasticsearch (attempt {attempt})...')
         if es_client.ping():
-            logger.info(f'Elasticsearch is up!')
+            logger.info('Elasticsearch is up!')
             es_client.close()
             break
         time.sleep(1)
