@@ -9,8 +9,6 @@ import os
 import aioredis
 import backoff
 
-from tests.functional.settings import test_settings
-
 logging.config.fileConfig(
     fname='tests/functional/log.conf',
     disable_existing_loggers=False,
@@ -30,7 +28,9 @@ def backoff_handler(details):
 @backoff.on_exception(
     backoff.expo, (ConnectionError,),
     on_backoff=backoff_handler,
-    max_time=test_settings.redis_connection_timeout,
+    # os.getenv is used instead of pydantic's settings cause the module
+    # is run as a stand-alone script:
+    max_time=os.getenv('REDIS_CONNECTION_TIMEOUT', '60'),
 )
 async def wait_redis():
     """
