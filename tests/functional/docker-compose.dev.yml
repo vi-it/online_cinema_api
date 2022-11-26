@@ -1,4 +1,4 @@
-version: "3.10"
+version: "3.8"
 
 services:
   app:
@@ -44,7 +44,7 @@ services:
     volumes:
       - redis_src:/app/redis/data
     ports:
-      - "6380:6379"
+      - "6379:6379"
 
 volumes:
   redis_src:
