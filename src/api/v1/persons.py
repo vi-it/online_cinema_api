@@ -62,7 +62,7 @@ async def get_object_by_id(
     res = await service.get_by_id(person_id, str(request.url))
     if not res:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND,
-                            detail=f'Person with {person_id} not found')
+                            detail=f'Person with id {person_id} not found')
     return res
 
 
@@ -83,7 +83,7 @@ async def person_films(
         person_service: PersonService = Depends(get_person_service)
 ) -> list[Film]:
     """
-    Get person films
+    Get person's films
 
     Examples:
     >>> http://127.0.0.1:8000/api/v1/persons/5bb0dd2c-3aff-4a2f-92f7-8cda3eb01ab0/film/

@@ -1,5 +1,11 @@
-import uuid
+"""
+This module tests API that handles parametrized requests.
+"""
 
+import http
+import random
+
+import faker
 import pytest
 
 from tests.functional.settings import test_settings
@@ -10,11 +16,11 @@ from tests.functional.settings import test_settings
     [
         (
                 {'query': 'The Star'},
-                {'status': 200, 'length': 50}
+                {'status': http.HTTPStatus.OK, 'length': 20}
         ),
         (
                 {'query': 'Mashed potato'},
-                {'status': 200, 'length': 0}
+                {'status': http.HTTPStatus.OK, 'length': 0}
         )
     ]
 )
@@ -24,28 +30,35 @@ async def test_search(
         make_get_request,
         query_data,
         expected_answer):
+    """Test GET films with a parametrized query at films/search/."""
+    # Setup #
+    f = faker.Faker()
     es_data = [{
-        'id': str(uuid.uuid4()),
-        'imdb_rating': 8.5,
-        'genre': [{'id': str(uuid.uuid4()), 'name': 'Action'},
-                  {'id': str(uuid.uuid4()), 'name': 'Sci-Fi'}],
+        'id': f.uuid4(),
+        'imdb_rating': f.pyfloat(right_digits=1, positive=True,
+                                 min_value=1, max_value=10),
+        'genre': [{'id': f.uuid4(), 'name': 'Action'},
+                  {'id': f.uuid4(), 'name': 'Sci-Fi'}],
         'title': 'The Star',
-        'description': 'New World',
-        'actors_names': ['Ann', 'Bob'],
-        'writers_names': ['Ben', 'Howard'],
-        'directors': [{'id': '101', 'name': 'Stan'}],
+        'description': f.text(max_nb_chars=100),
+        'actors_names': [f.name() for _ in range(random.randint(0, 4))],
+        'writers_names': [f.name() for _ in range(random.randint(0, 3))],
+        'directors': [{'id': f.uuid4(), 'name': f.name()}],
         'actors': [
-            {'id': '111', 'name': 'Ann'},
-            {'id': '222', 'name': 'Bob'}
+            {'id': f.uuid4(), 'name': f.name()},
+            {'id': f.uuid4(), 'name': f.name()}
         ],
         'writers': [
-            {'id': '333', 'name': 'Ben'},
-            {'id': '444', 'name': 'Howard'}
+            {'id': f.uuid4(), 'name': f.name()},
+            {'id': f.uuid4(), 'name': f.name()}
         ],
-    } for _ in range(60)]
-    await es_write_data(es_data, test_settings.es_index_movies, test_settings.es_id_field)
+    } for _ in range(20)]
+    await es_write_data(es_data, test_settings.es_index_movies,
+                        test_settings.es_id_field)
 
+    # Run #
     response = await make_get_request('films/search/', query_data)
 
+    # Assertions #
     assert response.status == expected_answer.get('status')
     assert len(response.body) == expected_answer.get('length')

@@ -1,5 +1,5 @@
 """
-Elasticsearch Request to create a new index 'movies'.
+Elasticsearch Request to create a new index.
 """
 EST_MAPPER_MOVIES = """
 {
