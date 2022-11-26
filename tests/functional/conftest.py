@@ -10,11 +10,12 @@ import pytest_asyncio
 from elasticsearch import AsyncElasticsearch
 from pytest_factoryboy import register
 
+from tests.functional.factories import (FilmsFactory, PersonsFactory,
+                                        GenresFactory)
 from tests.functional.settings import test_settings
+from tests.functional.testdata.es_mapping import EST_INDEXES
 from tests.functional.utils.helpers import get_es_bulk_query
 from tests.functional.utils.models import HTTPResponse
-from tests.functional.factories import FilmsFactory, PersonsFactory, GenresFactory
-from tests.functional.testdata.es_mapping import EST_INDEXES
 
 register(FilmsFactory)
 register(PersonsFactory)
