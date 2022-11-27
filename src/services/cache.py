@@ -30,7 +30,7 @@ class CacheAbstract(abc.ABC):
 
 
 class RedisCache(CacheAbstract):
-    """Class Redit class."""
+    """Redis cache class."""
 
     def __init__(self, redis: Redis) -> None:
         self._redis = redis
