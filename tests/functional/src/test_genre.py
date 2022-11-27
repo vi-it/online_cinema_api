@@ -3,6 +3,7 @@ This module tests API that handles genre data.
 """
 
 import http
+import json
 
 import pytest
 
@@ -49,21 +50,6 @@ class TestGenreApi:
         assert len(response.body) == genres_num
         assert res == expected
 
-    @pytest.mark.parametrize('expected_answer',
-                             [{'status': http.HTTPStatus.OK, 'length': 3}])
-    async def test_cache_get_list(
-            self,
-            make_get_request,
-            expected_answer,
-    ):
-        """Test caching for GET genres at /api/v1/genres/."""
-        # Run #
-        response = await make_get_request(url='genres/')
-
-        # Assertions #
-        assert response.status == expected_answer.get('status')
-        assert len(response.body) == expected_answer.get('length')
-
     async def test_get_by_id(
             self,
             create_es_index,
@@ -85,6 +71,37 @@ class TestGenreApi:
         # Assertions #
         assert response.status == http.HTTPStatus.OK
         assert Genre(**response.body) == genre.dict()
+
+    async def test_get_by_id_cached(
+             self,
+             storages_clean,
+             create_es_index,
+             es_write_data,
+             make_get_request,
+             genres_factory,
+             redis_client,
+    ):
+        """Test caching for GET genres at /api/v1/genres/{genre_id}."""
+        # Setup #
+        await storages_clean(index_name=test_settings.es_index_genres)
+
+        genres = genres_factory.create_batch(2)
+        target_genre = genres[0]
+
+        create_es_index(index_name=test_settings.es_index_genres)
+        await es_write_data(
+            [genre.dict() for genre in genres],
+            test_settings.es_index_genres,
+            test_settings.es_id_field,
+        )
+
+        await make_get_request(url=f'genres/{target_genre.id}')
+
+        # Run #
+        cached = await redis_client.get(target_genre.id)
+
+        # Assertions #
+        assert Genre(**json.loads(cached.decode('utf-8'))) == target_genre
 
     async def test_not_found(
             self,
