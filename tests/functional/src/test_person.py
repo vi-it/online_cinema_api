@@ -1,29 +1,28 @@
 """
 This module tests API that handles person data.
 """
-
 import http
 import json
 import random
 
 import faker
 import pytest
-
 from tests.functional.models import Person
 from tests.functional.settings import test_settings
 
 g = faker.Faker()
 SAMPLE_GENRES = [
-    {g.uuid4(): 'Action'},
-    {g.uuid4(): 'Sci-fi'},
-    {g.uuid4(): 'Drama'},
-    {g.uuid4(): 'Comedy'},
-    {g.uuid4(): 'Tragedy'},
-    {g.uuid4(): 'Horror'},
-    {g.uuid4(): 'Thriller'},
+    {'id': g.uuid4(), 'name': 'Action'},
+    {'id': g.uuid4(), 'name': 'Sci-fi'},
+    {'id': g.uuid4(), 'name': 'Drama'},
+    {'id': g.uuid4(), 'name': 'Comedy'},
+    {'id': g.uuid4(), 'name': 'Tragedy'},
+    {'id': g.uuid4(), 'name': 'Horror'},
+    {'id': g.uuid4(), 'name': 'Thriller'},
 ]
 # Elastic fake documents won't have more genres than this number:
 MAX_GENRES = len(SAMPLE_GENRES) // 2
+
 
 @pytest.mark.asyncio
 class TestPersonApi:
@@ -33,8 +32,7 @@ class TestPersonApi:
     async def test_get_list(
             self,
             storages_clean,
-            create_es_index,
-            es_write_data,
+            upload_data_to_es_index,
             make_get_request,
             persons_factory,
             expected_answer
@@ -44,16 +42,12 @@ class TestPersonApi:
         await storages_clean(index_name=test_settings.es_index_persons)
 
         quantity = 3
-        persons = persons_factory.create_batch(quantity)
-        persons_num = len(persons)
-
-        create_es_index(index_name=test_settings.es_index_persons)
-
-        await es_write_data(
-            [person.dict() for person in persons],
-            test_settings.es_index_persons,
-            test_settings.es_id_field
-        )
+        persons = await upload_data_to_es_index(
+            quantity=quantity,
+            obj_factory=persons_factory,
+            index_name=test_settings.es_index_persons,
+            es_id_field=test_settings.es_id_field
+        ).__anext__()
 
         # Run #
         response = await make_get_request(url='persons/')
@@ -63,24 +57,57 @@ class TestPersonApi:
 
         # Assertions #
         assert response.status == http.HTTPStatus.OK
-        assert persons_num == quantity
-        assert len(response.body) == persons_num
+        assert len(response.body) == quantity
         assert res == expected
+
+    async def test_pagination(
+            self,
+            storages_clean,
+            upload_data_to_es_index,
+            make_get_request,
+            persons_factory,
+    ):
+        """Test pagination at /api/v1/persons/."""
+        # Setup #
+        await storages_clean(index_name=test_settings.es_index_persons)
+
+        quantity = 50
+        _ = await upload_data_to_es_index(
+            quantity=quantity,
+            obj_factory=persons_factory,
+            index_name=test_settings.es_index_persons,
+            es_id_field=test_settings.es_id_field
+        ).__anext__()
+
+        # Run #
+        response = await make_get_request(
+            url='persons/',
+            query_data={'page[size]': 20,
+                        'page[number]': 3}
+        )
+
+        # Assertions #
+        assert len(response.body) == 10
 
     async def test_get_by_id(
             self,
-            create_es_index,
-            es_write_data,
+            storages_clean,
+            upload_data_to_es_index,
             make_get_request,
             persons_factory,
     ):
         """Test GET person by id at /api/v1/persons/{person_id}."""
         # Setup #
-        es_data = [persons_factory().dict() for _ in range(5)]
-        create_es_index(index_name=test_settings.es_index_persons)
-        await es_write_data(es_data, test_settings.es_index_persons,
-                            test_settings.es_id_field)
-        person = Person(**es_data[0])
+        await storages_clean(index_name=test_settings.es_index_persons)
+
+        quantity = 5
+        persons = await upload_data_to_es_index(
+            quantity=quantity,
+            obj_factory=persons_factory,
+            index_name=test_settings.es_index_persons,
+            es_id_field=test_settings.es_id_field
+        ).__anext__()
+        person = persons[0]
 
         # Run #
         response = await make_get_request(url=f'persons/{person.id}')
@@ -92,8 +119,7 @@ class TestPersonApi:
     async def test_get_by_id_cached(
             self,
             storages_clean,
-            create_es_index,
-            es_write_data,
+            upload_data_to_es_index,
             make_get_request,
             persons_factory,
             redis_client,
@@ -102,15 +128,14 @@ class TestPersonApi:
         # Setup #
         await storages_clean(index_name=test_settings.es_index_persons)
 
-        persons = persons_factory.create_batch(2)
+        quantity = 2
+        persons = await upload_data_to_es_index(
+            quantity=quantity,
+            obj_factory=persons_factory,
+            index_name=test_settings.es_index_persons,
+            es_id_field=test_settings.es_id_field
+        ).__anext__()
         target_person = persons[0]
-
-        create_es_index(index_name=test_settings.es_index_persons)
-        await es_write_data(
-            [person.dict() for person in persons],
-            test_settings.es_index_persons,
-            test_settings.es_id_field,
-        )
 
         await make_get_request(url=f'persons/{target_person.id}')
 
@@ -125,11 +150,11 @@ class TestPersonApi:
             make_get_request,
     ):
         """
-        Test the response status when when person is not found by id at
+        Test the response status when person is not found by id at
         /api/v1/persons/{person_id}.
         """
         # Run #
-        response = await make_get_request(url=f'persons/test-uid')
+        response = await make_get_request(url='persons/test-uid')
 
         # Assertions #
         assert response.status == http.HTTPStatus.NOT_FOUND
@@ -153,13 +178,13 @@ class TestPersonApi:
         test_name = ['Marina', 'Ivan', 'Alexander', 'Ksysha', 'Vladimir']
         es_data = [persons_factory(name=n).dict() for n in test_name]
 
-        create_es_index(index_name=test_settings.es_index_persons)
+        await create_es_index(index_name=test_settings.es_index_persons)
         await es_write_data(es_data, test_settings.es_index_persons,
                             test_settings.es_id_field)
         person = Person(**es_data[0])
 
         # Run #
-        response = await make_get_request(url=f'persons/search/?query=marina')
+        response = await make_get_request(url='persons/search/?query=marina')
 
         # Assertions #
         assert response.status == http.HTTPStatus.OK
@@ -175,10 +200,9 @@ class TestPersonApi:
     ):
         """Test GET person's films at /api/v1/persons/{person_id}/film/."""
         # Setup #
-        await storages_clean(index_name=test_settings.es_index_persons)
         await storages_clean(index_name=test_settings.es_index_movies)
 
-        create_es_index(index_name=test_settings.es_index_movies)
+        await create_es_index(index_name=test_settings.es_index_movies)
 
         f = faker.Faker()
         # Create an actor whose films will be requested:
@@ -209,30 +233,28 @@ class TestPersonApi:
                 SAMPLE_GENRES, k=random.randint(1, MAX_GENRES)
             )
 
-            # Now, using the above data, generate a fake Elastic document:
             data = {
                 'id': f.uuid4(),
-                'imdb_rating': imdb_rating,
-                'genre': genres,
                 'title': f.catch_phrase().title(),
                 'description': f.text(max_nb_chars=100),
-                'actors_names': actors_names,
-                'writers_names': writers_names,
-                'directors': directors,
+                'imdb_rating': imdb_rating,
+                'genre': genres,
                 'actors': actors,
+                'directors': directors,
                 'writers': writers,
+                'actors_names': actors_names,
+                'director': [director['name'] for director in directors],
+                'writers_names': writers_names,
             }
+            # Now, using the above data, generate a fake Elastic document:
             es_data.append(data)
 
         # 'Inject' the target actor into some random films:
-        num_of_films = random.randint(1, len(es_data)//2)
+        num_of_films = random.randint(1, len(es_data) // 2)
         starred = random.sample(es_data, k=num_of_films)
         for item in starred:
             item['actors'].append({'id': target_id, 'name': target_name})
             item['actors_names'].append(target_name)
-
-        await es_write_data(es_data, test_settings.es_index_movies,
-                            test_settings.es_id_field)
 
         await es_write_data(es_data, test_settings.es_index_movies,
                             test_settings.es_id_field)
@@ -243,4 +265,3 @@ class TestPersonApi:
         # Assertions #
         assert response.status == http.HTTPStatus.OK
         assert len(response.body) == num_of_films
-

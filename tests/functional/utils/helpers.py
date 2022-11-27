@@ -1,7 +1,9 @@
 import json
 
 
-def get_es_bulk_query(es_data: list, index_name: str, es_id_field: str) -> list:
+def get_es_bulk_query(es_data: list,
+                      index_name: str,
+                      es_id_field: str) -> list:
     bulk_query = []
     for row in es_data:
         bulk_query.extend([

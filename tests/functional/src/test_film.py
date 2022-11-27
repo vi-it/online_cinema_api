@@ -6,7 +6,6 @@ import http
 import json
 
 import pytest
-
 from tests.functional.models import Film
 from tests.functional.settings import test_settings
 
@@ -16,27 +15,23 @@ class TestFilmApi:
     """Test API that handles films data."""
 
     async def test_get_list(
-        self,
-        storages_clean,
-        create_es_index,
-        es_write_data,
-        make_get_request,
-        films_factory,
+            self,
+            storages_clean,
+            upload_data_to_es_index,
+            make_get_request,
+            films_factory,
     ):
         """Test GET films list at /api/v1/films/."""
         # Setup #
         await storages_clean(index_name=test_settings.es_index_movies)
 
         quantity = 3
-        films = films_factory.create_batch(quantity)
-        films_num = len(films)
-
-        create_es_index(index_name=test_settings.es_index_movies)
-        await es_write_data(
-            [film.dict() for film in films],
-            test_settings.es_index_movies,
-            test_settings.es_id_field,
-        )
+        films = await upload_data_to_es_index(
+            quantity=quantity,
+            obj_factory=films_factory,
+            index_name=test_settings.es_index_movies,
+            es_id_field=test_settings.es_id_field
+        ).__anext__()
 
         # Run #
         response = await make_get_request(url='films/')
@@ -46,26 +41,57 @@ class TestFilmApi:
 
         # Assertions #
         assert response.status == http.HTTPStatus.OK
-        assert films_num == quantity
-        assert len(response.body) == films_num
+        assert len(response.body) == quantity
         assert res == expected
+
+    async def test_pagination(
+            self,
+            storages_clean,
+            upload_data_to_es_index,
+            make_get_request,
+            films_factory,
+    ):
+        """Test pagination at /api/v1/films/."""
+        # Setup #
+        await storages_clean(index_name=test_settings.es_index_movies)
+
+        quantity = 50
+        _ = await upload_data_to_es_index(
+            quantity=quantity,
+            obj_factory=films_factory,
+            index_name=test_settings.es_index_movies,
+            es_id_field=test_settings.es_id_field
+        ).__anext__()
+
+        # Run #
+        response = await make_get_request(
+            url='films/',
+            query_data={'page[size]': 20,
+                        'page[number]': 3}
+        )
+
+        # Assertions #
+        assert len(response.body) == 10
 
     async def test_get_by_id(
             self,
             storages_clean,
-            create_es_index,
-            es_write_data,
+            upload_data_to_es_index,
             make_get_request,
             films_factory,
     ):
         """ Test GET film by id at /api/v1/films/{film_id}."""
         # Setup #
         await storages_clean(index_name=test_settings.es_index_movies)
-        es_data = [films_factory().dict() for _ in range(5)]
-        create_es_index(index_name=test_settings.es_index_movies)
-        await es_write_data(es_data, test_settings.es_index_movies,
-                            test_settings.es_id_field)
-        film = Film(**es_data[0])
+
+        quantity = 5
+        films = await upload_data_to_es_index(
+            quantity=quantity,
+            obj_factory=films_factory,
+            index_name=test_settings.es_index_movies,
+            es_id_field=test_settings.es_id_field
+        ).__anext__()
+        film = films[0]
 
         # Run #
         response = await make_get_request(url=f'films/{film.id}')
@@ -75,27 +101,25 @@ class TestFilmApi:
         assert Film(**response.body) == film.dict()
 
     async def test_get_by_id_cached(
-        self,
-        storages_clean,
-        create_es_index,
-        es_write_data,
-        make_get_request,
-        films_factory,
-        redis_client,
+            self,
+            storages_clean,
+            upload_data_to_es_index,
+            make_get_request,
+            films_factory,
+            redis_client,
     ):
         """Test caching for GET films at /api/v1/films/{film_id}."""
         # Setup #
         await storages_clean(index_name=test_settings.es_index_movies)
 
-        films = films_factory.create_batch(2)
+        quantity = 2
+        films = await upload_data_to_es_index(
+            quantity=quantity,
+            obj_factory=films_factory,
+            index_name=test_settings.es_index_movies,
+            es_id_field=test_settings.es_id_field
+        ).__anext__()
         target_film = films[0]
-
-        create_es_index(index_name=test_settings.es_index_movies)
-        await es_write_data(
-            [film.dict() for film in films],
-            test_settings.es_index_movies,
-            test_settings.es_id_field,
-        )
 
         await make_get_request(url=f'films/{target_film.id}')
 
@@ -114,7 +138,7 @@ class TestFilmApi:
         /api/v1/films/{film_id}.
         """
         # Run #
-        response = await make_get_request(url=f'films/test-uid')
+        response = await make_get_request(url='films/test-uid')
 
         # Assertions #
         assert response.status == http.HTTPStatus.NOT_FOUND

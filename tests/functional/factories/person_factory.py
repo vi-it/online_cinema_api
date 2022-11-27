@@ -7,17 +7,17 @@ import uuid
 import factory
 
 from .. import models
-from . import FilmsFactory
 
 
 def get_role():
-    "Return a random role person."
+    """Return a random role person."""
     return random.choice(['actor', 'writer', 'director'])
 
 
 def get_films_uid():
-    "Return uids."
-    return [str(uuid.uuid4()) for i in range(random.randint(1,4))] # todo: исправить после реализации factory films
+    """Return uids."""
+    return [str(uuid.uuid4())
+            for i in range(random.randint(1, 4))]
 
 
 class PersonsFactory(factory.Factory):

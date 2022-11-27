@@ -1,5 +1,3 @@
-from pydantic import BaseModel, Field
-
 from .base import BaseOrjsonModel
 
 
@@ -8,4 +6,3 @@ class Person(BaseOrjsonModel):
     name: str
     role: str | None
     film_ids: list[str] | list
-

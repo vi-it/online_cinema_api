@@ -6,9 +6,8 @@ import http
 import json
 
 import pytest
-
-from tests.functional.settings import test_settings
 from tests.functional.models import Genre
+from tests.functional.settings import test_settings
 
 
 @pytest.mark.asyncio
@@ -18,8 +17,7 @@ class TestGenreApi:
     async def test_get_list(
             self,
             storages_clean,
-            create_es_index,
-            es_write_data,
+            upload_data_to_es_index,
             make_get_request,
             genres_factory
     ):
@@ -28,15 +26,12 @@ class TestGenreApi:
         await storages_clean(index_name=test_settings.es_index_genres)
 
         quantity = 3
-        genres = genres_factory.create_batch(quantity)
-        genres_num = len(genres)
-
-        create_es_index(index_name=test_settings.es_index_genres)
-        await es_write_data(
-            [genre.dict() for genre in genres],
-            test_settings.es_index_genres,
-            test_settings.es_id_field,
-        )
+        genres = await upload_data_to_es_index(
+            quantity=quantity,
+            obj_factory=genres_factory,
+            index_name=test_settings.es_index_genres,
+            es_id_field=test_settings.es_id_field
+        ).__anext__()
 
         # Run #
         response = await make_get_request(url='genres/')
@@ -46,24 +41,57 @@ class TestGenreApi:
 
         # Assertions #
         assert response.status == http.HTTPStatus.OK
-        assert genres_num == quantity
-        assert len(response.body) == genres_num
+        assert len(response.body) == quantity
         assert res == expected
+
+    async def test_pagination(
+            self,
+            storages_clean,
+            upload_data_to_es_index,
+            make_get_request,
+            genres_factory,
+    ):
+        """Test pagination at /api/v1/genres/."""
+        # Setup #
+        await storages_clean(index_name=test_settings.es_index_genres)
+
+        quantity = 50
+        _ = await upload_data_to_es_index(
+            quantity=quantity,
+            obj_factory=genres_factory,
+            index_name=test_settings.es_index_genres,
+            es_id_field=test_settings.es_id_field
+        ).__anext__()
+
+        # Run #
+        response = await make_get_request(
+            url='genres/',
+            query_data={'page[size]': 20,
+                        'page[number]': 3}
+        )
+
+        # Assertions #
+        assert len(response.body) == 10
 
     async def test_get_by_id(
             self,
-            create_es_index,
-            es_write_data,
+            storages_clean,
+            upload_data_to_es_index,
             make_get_request,
             genres_factory,
     ):
         """ Test GET genre by id at /api/v1/genres/{genre_id}."""
         # Setup #
-        es_data = [genres_factory().dict() for _ in range(5)]
-        create_es_index(index_name=test_settings.es_index_genres)
-        await es_write_data(es_data, test_settings.es_index_genres,
-                            test_settings.es_id_field)
-        genre = Genre(**es_data[0])
+        await storages_clean(index_name=test_settings.es_index_genres)
+
+        quantity = 5
+        genres = await upload_data_to_es_index(
+            quantity=quantity,
+            obj_factory=genres_factory,
+            index_name=test_settings.es_index_genres,
+            es_id_field=test_settings.es_id_field
+        ).__anext__()
+        genre = genres[0]
 
         # Run #
         response = await make_get_request(url=f'genres/{genre.id}')
@@ -73,27 +101,25 @@ class TestGenreApi:
         assert Genre(**response.body) == genre.dict()
 
     async def test_get_by_id_cached(
-             self,
-             storages_clean,
-             create_es_index,
-             es_write_data,
-             make_get_request,
-             genres_factory,
-             redis_client,
+            self,
+            storages_clean,
+            upload_data_to_es_index,
+            make_get_request,
+            genres_factory,
+            redis_client,
     ):
         """Test caching for GET genres at /api/v1/genres/{genre_id}."""
         # Setup #
         await storages_clean(index_name=test_settings.es_index_genres)
 
-        genres = genres_factory.create_batch(2)
+        quantity = 2
+        genres = await upload_data_to_es_index(
+            quantity=quantity,
+            obj_factory=genres_factory,
+            index_name=test_settings.es_index_genres,
+            es_id_field=test_settings.es_id_field
+        ).__anext__()
         target_genre = genres[0]
-
-        create_es_index(index_name=test_settings.es_index_genres)
-        await es_write_data(
-            [genre.dict() for genre in genres],
-            test_settings.es_index_genres,
-            test_settings.es_id_field,
-        )
 
         await make_get_request(url=f'genres/{target_genre.id}')
 
@@ -112,7 +138,7 @@ class TestGenreApi:
         /api/v1/genres/{genre_id}.
         """
         # Run #
-        response = await make_get_request(url=f'genres/test-uid')
+        response = await make_get_request(url='genres/test-uid')
 
         # Assertions #
         assert response.status == http.HTTPStatus.NOT_FOUND
