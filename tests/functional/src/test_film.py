@@ -49,23 +49,9 @@ class TestFilmApi:
         assert len(response.body) == films_num
         assert res == expected
 
-    @pytest.mark.parametrize('expected_answer',
-                             [{'status': http.HTTPStatus.OK, 'length': 3}])
-    async def test_cache_get_list(
-        self,
-        make_get_request,
-        expected_answer,
-    ):
-        """Test caching for GET films at /api/v1/films/."""
-        # Run #
-        response = await make_get_request(url='films/')
-
-        # Assertions #
-        assert response.status == expected_answer.get('status')
-        assert len(response.body) == expected_answer.get('length')
-
     async def test_get_by_id(
             self,
+            storages_clean,
             create_es_index,
             es_write_data,
             make_get_request,
@@ -73,6 +59,7 @@ class TestFilmApi:
     ):
         """ Test GET film by id at /api/v1/films/{film_id}."""
         # Setup #
+        await storages_clean(index_name=test_settings.es_index_movies)
         es_data = [films_factory().dict() for _ in range(5)]
         create_es_index(index_name=test_settings.es_index_movies)
         await es_write_data(es_data, test_settings.es_index_movies,
@@ -85,6 +72,40 @@ class TestFilmApi:
         # Assertions #
         assert response.status == http.HTTPStatus.OK
         assert Film(**response.body) == film.dict()
+
+    async def test_get_by_id_cached(
+        self,
+        storages_clean,
+        create_es_index,
+        es_write_data,
+        make_get_request,
+        films_factory,
+        redis_client,
+    ):
+        """Test caching for GET films at /api/v1/films/{film_id}."""
+        # Setup #
+        await storages_clean(index_name=test_settings.es_index_movies)
+
+        quantity = 2
+        films = films_factory.create_batch(quantity)
+        film_id = films[0].id
+
+        create_es_index(index_name=test_settings.es_index_movies)
+        await es_write_data(
+            [film.dict() for film in films],
+            test_settings.es_index_movies,
+            test_settings.es_id_field,
+        )
+
+        await make_get_request(url=f'films/{film_id}')
+
+        # Run #
+        cached = await redis_client.get(film_id)
+        cached = cached.decode('utf-8')
+
+        # Assertions #
+        import json
+        assert Film(**json.loads(cached)) == films[0]
 
     async def test_not_found(
             self,

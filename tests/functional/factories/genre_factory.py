@@ -9,7 +9,7 @@ from .. import models
 
 
 def get_name():
-    "Return a random role person."
+    """Return a random role person."""
     return random.choice(["Western", "Adventure", "Drama", "Romance"])
 
 

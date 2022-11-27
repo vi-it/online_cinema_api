@@ -1,3 +1,4 @@
+import http
 import logging
 
 import elasticsearch
@@ -42,6 +43,6 @@ class ElasticsearchLoader:
             logger.info(f"Create index - {self.index}.")
             self.es.indices.create(index=self.index,
                                    body=EST_INDEXES[self.index],
-                                   ignore=400)
+                                   ignore=http.HTTPStatus.BAD_REQUEST)
             return
         logger.info("Index {} is already created.".format(self.index))

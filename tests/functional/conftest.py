@@ -72,7 +72,11 @@ def es_write_data(es_client: AsyncElasticsearch):
     async def inner(data: list[dict], index_name: str, es_id_field: str):
         bulk_query = get_es_bulk_query(data, index_name, es_id_field)
         str_query = '\n'.join(bulk_query) + '\n'
-        response = await es_client.bulk(str_query, refresh=True)
+
+        response = await es_client.bulk(
+            str_query,
+            refresh='wait_for',  # wait till data is visible in search
+        )
         if response['errors']:
             raise Exception('Ошибка записи данных в Elasticsearch')
 
