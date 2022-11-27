@@ -3,6 +3,7 @@ This module tests API that handles person data.
 """
 
 import http
+import json
 import random
 
 import faker
@@ -66,21 +67,6 @@ class TestPersonApi:
         assert len(response.body) == persons_num
         assert res == expected
 
-    @pytest.mark.parametrize('expected_answer',
-                             [{'status': http.HTTPStatus.OK, 'length': 3}])
-    async def test_cache_get_list(
-            self,
-            make_get_request,
-            expected_answer
-    ):
-        """Test caching for GET person at /api/v1/persons/."""
-        # Run #
-        response = await make_get_request(url='persons/')
-
-        # Assertions #
-        assert response.status == expected_answer.get('status')
-        assert len(response.body) == expected_answer.get('length')
-
     async def test_get_by_id(
             self,
             create_es_index,
@@ -102,6 +88,37 @@ class TestPersonApi:
         # Assertions #
         assert response.status == 200
         assert Person(**response.body) == person.dict()
+
+    async def test_get_by_id_cached(
+            self,
+            storages_clean,
+            create_es_index,
+            es_write_data,
+            make_get_request,
+            persons_factory,
+            redis_client,
+    ):
+        """Test caching for GET person at /api/v1/persons/{person_id}."""
+        # Setup #
+        await storages_clean(index_name=test_settings.es_index_persons)
+
+        persons = persons_factory.create_batch(2)
+        target_person = persons[0]
+
+        create_es_index(index_name=test_settings.es_index_persons)
+        await es_write_data(
+            [person.dict() for person in persons],
+            test_settings.es_index_persons,
+            test_settings.es_id_field,
+        )
+
+        await make_get_request(url=f'persons/{target_person.id}')
+
+        # Run #
+        cached = await redis_client.get(target_person.id)
+
+        # Assertions #
+        assert Person(**json.loads(cached.decode('utf-8'))) == target_person
 
     async def test_not_found(
             self,
