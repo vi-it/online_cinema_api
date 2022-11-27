@@ -3,6 +3,7 @@ This module tests API that handles film data.
 """
 
 import http
+import json
 
 import pytest
 
@@ -86,9 +87,8 @@ class TestFilmApi:
         # Setup #
         await storages_clean(index_name=test_settings.es_index_movies)
 
-        quantity = 2
-        films = films_factory.create_batch(quantity)
-        film_id = films[0].id
+        films = films_factory.create_batch(2)
+        target_film = films[0]
 
         create_es_index(index_name=test_settings.es_index_movies)
         await es_write_data(
@@ -97,15 +97,13 @@ class TestFilmApi:
             test_settings.es_id_field,
         )
 
-        await make_get_request(url=f'films/{film_id}')
+        await make_get_request(url=f'films/{target_film.id}')
 
         # Run #
-        cached = await redis_client.get(film_id)
-        cached = cached.decode('utf-8')
+        cached = await redis_client.get(target_film.id)
 
         # Assertions #
-        import json
-        assert Film(**json.loads(cached)) == films[0]
+        assert Film(**json.loads(cached.decode('utf-8'))) == target_film
 
     async def test_not_found(
             self,
