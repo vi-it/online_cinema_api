@@ -122,7 +122,7 @@ def upload_data_to_es_index(create_es_index, es_write_data, storages_clean):
                     es_id_field: str):
         objects = obj_factory.create_batch(quantity)
         await create_es_index(index_name=index_name)
-        await es_write_data(data=[object.dict() for object in objects],
+        await es_write_data(data=[obj.dict() for obj in objects],
                             index_name=index_name,
                             es_id_field=es_id_field)
         yield objects
