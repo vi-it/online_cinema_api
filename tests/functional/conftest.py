@@ -4,11 +4,13 @@ This module stores fixtures for pytest.
 import aiohttp
 import aioredis
 import asyncio
+import http
 
 import pytest
 import pytest_asyncio
 from elasticsearch import AsyncElasticsearch
 from pytest_factoryboy import register
+import factory
 
 from tests.functional.factories import (FilmsFactory, PersonsFactory,
                                         GenresFactory)
@@ -32,7 +34,9 @@ def event_loop():
 
 @pytest_asyncio.fixture(scope='function')
 async def es_client():
-    client = AsyncElasticsearch(hosts=f'http://{test_settings.es_host}:{test_settings.es_port}')
+    client = AsyncElasticsearch(
+        hosts=f'http://{test_settings.es_host}:{test_settings.es_port}'
+    )
     yield client
     await client.close()
 
@@ -40,7 +44,9 @@ async def es_client():
 @pytest_asyncio.fixture(scope="function")
 async def redis_client():
     client = await aioredis.create_redis_pool(
-        (test_settings.redis_host, test_settings.redis_port), minsize=1, maxsize=20
+        (test_settings.redis_host, test_settings.redis_port),
+        minsize=1,
+        maxsize=20
     )
     yield client
     client.close()
@@ -60,9 +66,8 @@ def create_es_index(es_client: AsyncElasticsearch):
         await es_client.indices.create(
             index=index_name,
             body=EST_INDEXES[index_name],
-            ignore=400
+            ignore=http.HTTPStatus.BAD_REQUEST
         )
-        yield
 
     return inner
 
@@ -97,12 +102,30 @@ def storages_clean(es_client: AsyncElasticsearch,
 @pytest_asyncio.fixture
 def make_get_request(session: aiohttp.ClientSession):
     async def inner(url: str, query_data: str | None = None):
-        url = f'http://{test_settings.service_host}:{test_settings.service_port}' \
-              f'/api/v1/{url}'
+        url = (f'http://{test_settings.service_host}:'
+               f'{test_settings.service_port}'
+               f'/api/v1/{url}')
         async with session.get(url, params=query_data) as response:
             body = await response.json()
             headers = response.headers
             status = response.status
             return HTTPResponse(body=body, headers=headers, status=status)
+
+    return inner
+
+
+@pytest_asyncio.fixture
+def upload_data_to_es_index(create_es_index, es_write_data, storages_clean):
+    async def inner(quantity: int,
+                    obj_factory: factory.Factory,
+                    index_name: str,
+                    es_id_field: str):
+        objects = obj_factory.create_batch(quantity)
+        await create_es_index(index_name=index_name)
+        await es_write_data(data=[obj.dict() for obj in objects],
+                            index_name=index_name,
+                            es_id_field=es_id_field)
+        yield objects
+        await storages_clean(index_name)
 
     return inner

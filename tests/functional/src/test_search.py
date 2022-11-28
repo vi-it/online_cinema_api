@@ -7,7 +7,6 @@ import random
 
 import faker
 import pytest
-
 from tests.functional.settings import test_settings
 
 
@@ -15,23 +14,26 @@ from tests.functional.settings import test_settings
     'query_data, expected_answer',
     [
         (
-                {'query': 'The Star'},
-                {'status': http.HTTPStatus.OK, 'length': 20}
+            {'query': 'Star'},
+            {'status': http.HTTPStatus.OK, 'length': 20}
         ),
         (
-                {'query': 'Mashed potato'},
-                {'status': http.HTTPStatus.OK, 'length': 0}
+            {'query': 'Mashed potato'},
+            {'status': http.HTTPStatus.OK, 'length': 0}
         )
     ]
 )
 @pytest.mark.asyncio
 async def test_search(
+        storages_clean,
         es_write_data,
         make_get_request,
         query_data,
         expected_answer):
     """Test GET films with a parametrized query at films/search/."""
     # Setup #
+    await storages_clean(index_name=test_settings.es_index_movies)
+
     f = faker.Faker()
     es_data = [{
         'id': f.uuid4(),
