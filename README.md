@@ -17,12 +17,12 @@ in Docker Compose.
 
 ## Technologies:
 
-* Elasticsearch;
 * FastAPI;
-* Nginx;
-* Postgresql;
-* Pytest;
-* Redis.
+* Elasticsearch;
+* pytest;
+* aioredis;
+* Docker Compose;
+* Nginx.
 
 ## Setup (database data is not present in the repository):
 
