@@ -4,9 +4,10 @@
 
 ## Technologies:
 * Elasticsearch;
-* Fastapi;
+* FastAPI;
 * Nginx;
 * Postgresql;
+* Pytest;
 * Redis.
 
 ## Setup (database data is not present in the repository):
